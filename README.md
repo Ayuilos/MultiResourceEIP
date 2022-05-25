@@ -369,7 +369,7 @@ The Multi Resource token standard has been based on existing ERC721 implementati
 
 ## Reference implementation
 
-A reference implementation by Neon Crisis developer CicadaNCR is available in the RMRK EIP branch of the RMRK EVM contract suite: https://github.com/rmrk-team/evm/blob/eip/contracts/MultiResource_EIP/ERCMultiResourceToken.so
+A reference implementation by Neon Crisis developer: CicadaNCR and Snake Soldiers developer: Steven Pineda is available in the suite: https://github.com/rmrk-team/MultiResourceEIP/blob/master/contracts/MultiResource_EIP/MultiResourceToken.sol
 
 ## Security Considerations
 
