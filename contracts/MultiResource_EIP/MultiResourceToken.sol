@@ -61,9 +61,9 @@ contract MultiResourceToken is Context, IMultiResource {
     string private _fallbackURI;
 
     constructor(string memory name_, string memory symbol_, string memory resourceName_) {
-      _name = name_;
-      _symbol = symbol_;
-      resourceStorage = new ResourceStorage(resourceName_);
+        _name = name_;
+        _symbol = symbol_;
+        resourceStorage = new ResourceStorage(resourceName_);
     }
 
     ////////////////////////////////////////
@@ -104,8 +104,8 @@ contract MultiResourceToken is Context, IMultiResource {
         require(to != owner, "MultiResource: approval to current owner");
 
         require(
-              _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
-              "MultiResource: approve caller is not owner nor approved for all"
+            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
+            "MultiResource: approve caller is not owner nor approved for all"
         );
 
         _approve(to, tokenId);
@@ -194,8 +194,8 @@ contract MultiResourceToken is Context, IMultiResource {
     ) internal virtual {
         _mint(to, tokenId);
         require(
-              _checkOnMultiResourceReceived(address(0), to, tokenId, data),
-              "MultiResource: transfer to non MultiResource Receiver implementer"
+                _checkOnMultiResourceReceived(address(0), to, tokenId, data),
+                "MultiResource: transfer to non MultiResource Receiver implementer"
         );
     }
 
@@ -279,19 +279,19 @@ contract MultiResourceToken is Context, IMultiResource {
         bytes memory data
     ) private returns (bool) {
         if (to.isContract()) {
-              try IMultiResourceReceiver(to).onMultiResourceReceived(_msgSender(), from, tokenId, data) returns (bytes4 retval) {
-                  return retval == IMultiResourceReceiver.onMultiResourceReceived.selector;
-              } catch (bytes memory reason) {
-                  if (reason.length == 0) {
-                        revert("MultiResource: transfer to non MultiResource Receiver implementer");
-                  } else {
-                        assembly {
-                            revert(add(32, reason), mload(reason))
-                        }
-                  }
-              }
+            try IMultiResourceReceiver(to).onMultiResourceReceived(_msgSender(), from, tokenId, data) returns (bytes4 retval) {
+                return retval == IMultiResourceReceiver.onMultiResourceReceived.selector;
+            } catch (bytes memory reason) {
+                if (reason.length == 0) {
+                    revert("MultiResource: transfer to non MultiResource Receiver implementer");
+                } else {
+                    assembly {
+                        revert(add(32, reason), mload(reason))
+                    }
+                }
+            }
         } else {
-              return true;
+            return true;
         }
     }
 
