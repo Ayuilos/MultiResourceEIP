@@ -379,6 +379,7 @@ contract MultiResourceToken is Context, IMultiResource {
             // We could check here that the resource to overwrite actually exists but it is probably harmless.
             _activeResources[_tokenId].removeItemByValue(overwrite);
             emit ResourceOverwritten(_tokenId, overwrite);
+            delete(_resourceOverwrites[_tokenId][_localResourceId]);
         }
         _activeResources[_tokenId].push(_localResourceId);
         //Push 0 value of uint16 to array, e.g., uninitialized

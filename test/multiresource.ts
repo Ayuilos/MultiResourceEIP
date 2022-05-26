@@ -1,4 +1,3 @@
-import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { MultiResourceTokenMock, ResourceStorageMock } from '../typechain';
@@ -57,9 +56,12 @@ describe('MultiResource', async () => {
   describe('Resource storage', async function () {
     it('can add resource', async function () {
       const id = ethers.utils.hexZeroPad('0x1111', 8);
-      const custom = ethers.utils.hexZeroPad('0x2222', 8);
 
-      await expect(storage.addResourceEntry(id, srcDefault, thumbDefault, metaURIDefault, customDefault)).to.emit(storage, 'ResourceStorageSet').withArgs(id);
+      await expect(
+        storage.addResourceEntry(id, srcDefault, thumbDefault, metaURIDefault, customDefault),
+      )
+        .to.emit(storage, 'ResourceStorageSet')
+        .withArgs(id);
     });
 
     it('cannot get non existing resource', async function () {
@@ -70,7 +72,9 @@ describe('MultiResource', async () => {
     it('cannot add resource entry if not issuer', async function () {
       const id = ethers.utils.hexZeroPad('0x1111', 8);
       await expect(
-        storage.connect(addrs[1]).addResourceEntry(id, srcDefault, thumbDefault, metaURIDefault, customDefault),
+        storage
+          .connect(addrs[1])
+          .addResourceEntry(id, srcDefault, thumbDefault, metaURIDefault, customDefault),
       ).to.be.revertedWith('RMRK: Only issuer');
     });
 
@@ -84,7 +88,9 @@ describe('MultiResource', async () => {
 
     it('cannot set issuer if not issuer', async function () {
       const newIssuer = addrs[1];
-      await expect(storage.connect(newIssuer).setIssuer(newIssuer.address)).to.be.revertedWith('RMRK: Only issuer');
+      await expect(storage.connect(newIssuer).setIssuer(newIssuer.address)).to.be.revertedWith(
+        'RMRK: Only issuer',
+      );
     });
 
     it('cannot overwrite resource', async function () {
@@ -113,10 +119,12 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId, resId2]);
-      await expect(token.addResourceToToken(tokenId, storage.address, resId, emptyOverwrite))
-        .to.emit(token, 'ResourceAddedToToken');
-      await expect(token.addResourceToToken(tokenId, storage.address, resId2, emptyOverwrite))
-        .to.emit(token, 'ResourceAddedToToken');
+      await expect(
+        token.addResourceToToken(tokenId, storage.address, resId, emptyOverwrite),
+      ).to.emit(token, 'ResourceAddedToToken');
+      await expect(
+        token.addResourceToToken(tokenId, storage.address, resId2, emptyOverwrite),
+      ).to.emit(token, 'ResourceAddedToToken');
 
       const pending = await token.getFullPendingResources(tokenId);
       expect(pending).to.be.eql([
@@ -232,6 +240,58 @@ describe('MultiResource', async () => {
     });
   });
 
+  describe('Overwriting resources', async function () {
+    it('can add resource to token overwritting an existing one', async function () {
+      const resId = ethers.utils.hexZeroPad('0x0001', 8);
+      const resId2 = ethers.utils.hexZeroPad('0x0002', 8);
+      const tokenId = 1;
+
+      await token.mint(owner.address, tokenId);
+      await addResources([resId, resId2]);
+      await token.addResourceToToken(tokenId, storage.address, resId, emptyOverwrite);
+      await token.acceptResource(tokenId, 0);
+
+      // Add new resource to overwrite the first, and accept
+      const activeResources = await token.getActiveResources(tokenId);
+      await expect(
+        token.addResourceToToken(tokenId, storage.address, resId2, activeResources[0]),
+      ).to.emit(token, 'ResourceOverwriteProposed');
+      const pendingResources = await token.getPendingResources(tokenId);
+
+      expect(await token.getResourceOverwrites(tokenId, pendingResources[0])).to.eql(
+        activeResources[0],
+      );
+      await expect(token.acceptResource(tokenId, 0)).to.emit(token, 'ResourceOverwritten');
+
+      expect(await token.getFullResources(tokenId)).to.be.eql([
+        [resId2, srcDefault, thumbDefault, metaURIDefault, customDefault],
+      ]);
+      // Overwrite should be gone
+      expect(await token.getResourceOverwrites(tokenId, pendingResources[0])).to.eql(
+        ethers.utils.hexZeroPad('0x0000', 16),
+      );
+    });
+
+    it('can overwrite non existing resource to token, it could have been deleted', async function () {
+      const resId = ethers.utils.hexZeroPad('0x0001', 8);
+      const tokenId = 1;
+
+      await token.mint(owner.address, tokenId);
+      await addResources([resId]);
+      await token.addResourceToToken(
+        tokenId,
+        storage.address,
+        resId,
+        ethers.utils.hexZeroPad('0x1', 16),
+      );
+      await token.acceptResource(tokenId, 0);
+
+      expect(await token.getFullResources(tokenId)).to.be.eql([
+        [resId, srcDefault, thumbDefault, metaURIDefault, customDefault],
+      ]);
+    });
+  });
+
   describe('Rejecting resources', async function () {
     it('can reject resource', async function () {
       const resId = ethers.utils.hexZeroPad('0x0001', 8);
@@ -241,8 +301,25 @@ describe('MultiResource', async () => {
       await addResources([resId]);
       await token.addResourceToToken(tokenId, storage.address, resId, emptyOverwrite);
 
-      await expect(token.rejectResource(tokenId, 0))
-        .to.emit(token, 'ResourceRejected');
+      await expect(token.rejectResource(tokenId, 0)).to.emit(token, 'ResourceRejected');
+
+      const pending = await token.getFullPendingResources(tokenId);
+      expect(pending).to.be.eql([]);
+      const accepted = await token.getFullResources(tokenId);
+      expect(accepted).to.be.eql([]);
+    });
+
+    it('can reject all resources', async function () {
+      const resId = ethers.utils.hexZeroPad('0x0001', 8);
+      const resId2 = ethers.utils.hexZeroPad('0x0002', 8);
+      const tokenId = 1;
+
+      await token.mint(owner.address, tokenId);
+      await addResources([resId, resId2]);
+      await token.addResourceToToken(tokenId, storage.address, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, storage.address, resId2, emptyOverwrite);
+
+      await expect(token.rejectAllResources(tokenId)).to.emit(token, 'ResourceRejected');
 
       const pending = await token.getFullPendingResources(tokenId);
       expect(pending).to.be.eql([]);
