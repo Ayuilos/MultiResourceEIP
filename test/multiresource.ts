@@ -57,12 +57,9 @@ describe('MultiResource', async () => {
   describe('Resource storage', async function () {
     it('can add resource', async function () {
       const id = ethers.utils.hexZeroPad('0x1111', 8);
-      const src = 'src';
-      const thumb = 'thumb';
-      const metaURI = 'metaURI';
       const custom = ethers.utils.hexZeroPad('0x2222', 8);
 
-      await storage.addResourceEntry(id, src, thumb, metaURI, custom);
+      await expect(storage.addResourceEntry(id, srcDefault, thumbDefault, metaURIDefault, customDefault)).to.emit(storage, 'ResourceStorageSet').withArgs(id);
     });
 
     it('cannot get non existing resource', async function () {
@@ -70,17 +67,41 @@ describe('MultiResource', async () => {
       await expect(storage.getResource(id)).to.be.revertedWith('RMRK: No resource matching Id');
     });
 
+    it('cannot add resource entry if not issuer', async function () {
+      const id = ethers.utils.hexZeroPad('0x1111', 8);
+      await expect(
+        storage.connect(addrs[1]).addResourceEntry(id, srcDefault, thumbDefault, metaURIDefault, customDefault),
+      ).to.be.revertedWith('RMRK: Only issuer');
+    });
+
+    it('can set and get issuer', async function () {
+      const newIssuerAddr = addrs[1].address;
+      expect(await storage.getIssuer()).to.equal(owner.address);
+
+      await storage.setIssuer(newIssuerAddr);
+      expect(await storage.getIssuer()).to.equal(newIssuerAddr);
+    });
+
+    it('cannot set issuer if not issuer', async function () {
+      const newIssuer = addrs[1];
+      await expect(storage.connect(newIssuer).setIssuer(newIssuer.address)).to.be.revertedWith('RMRK: Only issuer');
+    });
+
     it('cannot overwrite resource', async function () {
       const id = ethers.utils.hexZeroPad('0x1111', 8);
-      const src = 'src';
-      const thumb = 'thumb';
-      const metaURI = 'metaURI';
-      const custom = ethers.utils.hexZeroPad('0x2222', 8);
 
-      await storage.addResourceEntry(id, src, thumb, metaURI, custom);
+      await storage.addResourceEntry(id, 'src', thumbDefault, metaURIDefault, customDefault);
       await expect(
-        storage.addResourceEntry(id, 'newSrc', thumb, metaURI, custom),
+        storage.addResourceEntry(id, 'newSrc', thumbDefault, metaURIDefault, customDefault),
       ).to.be.revertedWith('RMRK: resource already exists');
+    });
+
+    it('cannot add resource with id 0', async function () {
+      const id = ethers.utils.hexZeroPad('0x0', 8);
+
+      await expect(
+        storage.addResourceEntry(id, srcDefault, thumbDefault, metaURIDefault, customDefault),
+      ).to.be.revertedWith('RMRK: Write to zero');
     });
   });
 
@@ -93,11 +114,9 @@ describe('MultiResource', async () => {
       await token.mint(owner.address, tokenId);
       await addResources([resId, resId2]);
       await expect(token.addResourceToToken(tokenId, storage.address, resId, emptyOverwrite))
-        .to.emit(token, 'ResourceAddedToToken')
-        .withArgs(tokenId, '0xd11a4eb9ea936027e0cd9a71fb295090');
+        .to.emit(token, 'ResourceAddedToToken');
       await expect(token.addResourceToToken(tokenId, storage.address, resId2, emptyOverwrite))
-        .to.emit(token, 'ResourceAddedToToken')
-        .withArgs(tokenId, '0xcda4ed4d2f23058bf8ef918994254dab');
+        .to.emit(token, 'ResourceAddedToToken');
 
       const pending = await token.getFullPendingResources(tokenId);
       expect(pending).to.be.eql([

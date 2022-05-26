@@ -6,7 +6,16 @@ import "../ResourceStorage.sol";
 
 contract ResourceStorageMock is ResourceStorage {
 
-    constructor(string memory resourceName_) ResourceStorage(resourceName_) {}
+    modifier onlyIssuer() {
+        require(_msgSender() == _issuer, "RMRK: Only issuer");
+        _;
+    }
+
+    address private _issuer;
+
+    constructor(string memory resourceName_) ResourceStorage(resourceName_) {
+        _setIssuer(_msgSender());
+    }
 
     function addResourceEntry(
         bytes8 _id,
@@ -14,7 +23,19 @@ contract ResourceStorageMock is ResourceStorage {
         string memory _thumb,
         string memory _metadataURI,
         bytes memory _custom
-    ) external virtual {
+    ) external virtual onlyIssuer {
         _addResourceEntry(_id, _src, _thumb, _metadataURI, _custom);
+    }
+
+    function setIssuer(address issuer) external onlyIssuer {
+        _setIssuer(issuer);
+    }
+
+    function _setIssuer(address issuer) private {
+        _issuer = issuer;
+    }
+
+    function getIssuer() external view returns (address) {
+        return _issuer;
     }
 }

@@ -2,18 +2,13 @@
 
 pragma solidity ^0.8.9;
 
+import "./interfaces/IResourceStorage.sol";
+import "./utils/Context.sol";
+
 /**
     @dev Ancillary resource storage contract.
 */
-contract ResourceStorage {
-
-    struct Resource {
-        bytes8 id; //8 bytes
-        string src; //32+
-        string thumb; //32+
-        string metadataURI; //32+
-        bytes custom;
-    }
+contract ResourceStorage is IResourceStorage, Context {
 
     //Mapping of bytes8 to Resource. Consider an incrementer for zero collision chance.
     mapping(bytes8 => Resource) private _resources;
@@ -57,6 +52,8 @@ contract ResourceStorage {
         });
         _resources[_id] = resource_;
         allResources.push(_id);
+
+        emit ResourceStorageSet(_id);
     }
 
     function getResource(bytes8 resourceId)
