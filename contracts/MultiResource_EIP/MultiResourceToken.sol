@@ -366,6 +366,10 @@ contract MultiResourceToken is Context, IMultiResource {
 
     function acceptResource(uint256 _tokenId, uint256 index) external virtual {
         require(index < _pendingResources[_tokenId].length, "MultiResource: index out of bounds");
+        require(
+            _msgSender() == ownerOf(_tokenId),
+            "MultiResource: not owner"
+        );
         bytes16 _localResourceId = _pendingResources[_tokenId][index];
         require(
             address(_localResources[_localResourceId].resourceAddress) != address(0),
@@ -393,6 +397,10 @@ contract MultiResourceToken is Context, IMultiResource {
             _pendingResources[_tokenId].length > index,
             "MultiResource: Pending child index out of range"
         );
+        require(
+            _msgSender() == ownerOf(_tokenId),
+            "MultiResource: not owner"
+        );
 
         bytes16 _localResourceId = _pendingResources[_tokenId][index];
         _pendingResources[_tokenId].removeItemByValue(_localResourceId);
@@ -406,7 +414,7 @@ contract MultiResourceToken is Context, IMultiResource {
         emit ResourceRejected(_tokenId, bytes16(0));
     }
 
-    function setPriority(uint256 _tokenId, uint16[] memory _priorities) external {
+    function setPriority(uint256 _tokenId, uint16[] memory _priorities) external virtual {
         uint256 length = _priorities.length;
         require(
             length == _activeResources[_tokenId].length,
@@ -414,7 +422,7 @@ contract MultiResourceToken is Context, IMultiResource {
         );
         require(
             _msgSender() == ownerOf(_tokenId),
-            "MultiResource: only owner can set priority"
+            "MultiResource: not owner"
         );
         _activeResourcePriorities[_tokenId] = _priorities;
 
@@ -441,7 +449,7 @@ contract MultiResourceToken is Context, IMultiResource {
         return IResourceStorage(_storage).getResource(_id);
     }
 
-    function getResourceOverwrites(uint256 _tokenId, bytes16 _resId) public view returns(bytes16) {
+    function getResourceOverwrites(uint256 _tokenId, bytes16 _resId) public virtual view returns(bytes16) {
         return _resourceOverwrites[_tokenId][_resId];
     }
 

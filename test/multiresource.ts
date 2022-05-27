@@ -230,6 +230,18 @@ describe('MultiResource', async () => {
       );
     });
 
+    it('cannot accept resource if not owner', async function () {
+      const resId = ethers.utils.hexZeroPad('0x0001', 8);
+      const tokenId = 1;
+
+      await token.mint(owner.address, tokenId);
+      await addResources([resId]);
+      await token.addResourceToToken(tokenId, storage.address, resId, emptyOverwrite);
+      await expect(token.connect(addrs[1]).acceptResource(tokenId, 0)).to.be.revertedWith(
+        'MultiResource: not owner',
+      );
+    });
+
     it('cannot accept non existing resource', async function () {
       const tokenId = 1;
 
@@ -341,6 +353,18 @@ describe('MultiResource', async () => {
       );
     });
 
+    it('cannot reject resource if not owner', async function () {
+      const resId = ethers.utils.hexZeroPad('0x0001', 8);
+      const tokenId = 1;
+
+      await token.mint(owner.address, tokenId);
+      await addResources([resId]);
+      await token.addResourceToToken(tokenId, storage.address, resId, emptyOverwrite);
+      await expect(token.connect(addrs[1]).rejectResource(tokenId, 0)).to.be.revertedWith(
+        'MultiResource: not owner',
+      );
+    });
+
     it('cannot reject non existing resource', async function () {
       const tokenId = 1;
 
@@ -367,7 +391,7 @@ describe('MultiResource', async () => {
       const tokenId = 1;
       await addResourcesToToken(tokenId);
       await expect(token.connect(addrs[1]).setPriority(tokenId, [2, 1])).to.be.revertedWith(
-        'MultiResource: only owner can set priority',
+        'MultiResource: not owner',
       );
     });
 
