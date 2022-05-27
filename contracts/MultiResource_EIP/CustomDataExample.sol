@@ -9,8 +9,7 @@ contract CustomDataProducer is MultiResourceToken {
     constructor()
         MultiResourceToken(
             "Test Contract",
-            "TEST",
-            "Test Resource Storage"
+            "TEST"
         )
         {}
 

@@ -6,7 +6,7 @@ import "../MultiResourceToken.sol";
 
 contract MultiResourceTokenMock is MultiResourceToken {
 
-    constructor(string memory name_, string memory symbol_, string memory resourceName_) MultiResourceToken(name_, symbol_, resourceName_) {}
+    constructor(string memory name_, string memory symbol_) MultiResourceToken(name_, symbol_) {}
 
     function mint(address to, uint256 tokenId) external {
         _mint(to, tokenId);

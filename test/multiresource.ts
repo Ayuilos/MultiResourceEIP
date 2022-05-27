@@ -35,7 +35,7 @@ describe('MultiResource', async () => {
     await storage2.deployed();
 
     const Token = await ethers.getContractFactory('MultiResourceTokenMock');
-    token = await Token.deploy(name, symbol, resourceName);
+    token = await Token.deploy(name, symbol);
     await token.deployed();
   });
 

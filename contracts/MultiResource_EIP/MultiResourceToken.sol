@@ -56,14 +56,11 @@ contract MultiResourceToken is Context, IMultiResource {
     //Mapping of bytes8 resource ID to tokenEnumeratedResource for tokenURI
     mapping(bytes8 => bool) private _tokenEnumeratedResource;
 
-    ResourceStorage public resourceStorage;
-
     string private _fallbackURI;
 
-    constructor(string memory name_, string memory symbol_, string memory resourceName_) {
+    constructor(string memory name_, string memory symbol_) {
         _name = name_;
         _symbol = symbol_;
-        resourceStorage = new ResourceStorage(resourceName_);
     }
 
     ////////////////////////////////////////
