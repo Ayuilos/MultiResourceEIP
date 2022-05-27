@@ -351,6 +351,45 @@ describe('MultiResource', async () => {
     });
   });
 
+  describe('Priorities', async function () {
+    it('can set and get priorities', async function () {
+      const tokenId = 1;
+      await addResourcesToToken(tokenId);
+
+      expect(await token.getActiveResourcePriorities(tokenId)).to.be.eql([0, 0]);
+      await expect(token.setPriority(tokenId, [2, 1]))
+        .to.emit(token, 'ResourcePrioritySet')
+        .withArgs(tokenId);
+      expect(await token.getActiveResourcePriorities(tokenId)).to.be.eql([2, 1]);
+    });
+
+    it('cannot set priorities for non owned token', async function () {
+      const tokenId = 1;
+      await addResourcesToToken(tokenId);
+      await expect(token.connect(addrs[1]).setPriority(tokenId, [2, 1])).to.be.revertedWith(
+        'MultiResource: only owner can set priority',
+      );
+    });
+
+    it('cannot set different number of priorities', async function () {
+      const tokenId = 1;
+      await addResourcesToToken(tokenId);
+      await expect(token.connect(addrs[1]).setPriority(tokenId, [1])).to.be.revertedWith(
+        'Bad priority list length',
+      );
+      await expect(token.connect(addrs[1]).setPriority(tokenId, [2, 1, 3])).to.be.revertedWith(
+        'Bad priority list length',
+      );
+    });
+
+    it('cannot set priorities for non existing token', async function () {
+      const tokenId = 1;
+      await expect(token.connect(addrs[1]).setPriority(tokenId, [])).to.be.revertedWith(
+        'ERC721: owner query for nonexistent token',
+      );
+    });
+  });
+
   async function addResources(ids: string[], useStorage?: ResourceStorageMock): Promise<void> {
     ids.forEach(async (resId) => {
       if (useStorage !== undefined) {
@@ -372,5 +411,16 @@ describe('MultiResource', async () => {
         );
       }
     });
+  }
+
+  async function addResourcesToToken(tokenId: number): Promise<void> {
+    const resId = ethers.utils.hexZeroPad('0x0001', 8);
+    const resId2 = ethers.utils.hexZeroPad('0x0002', 8);
+    await token.mint(owner.address, tokenId);
+    await addResources([resId, resId2]);
+    await token.addResourceToToken(tokenId, storage.address, resId, emptyOverwrite);
+    await token.addResourceToToken(tokenId, storage.address, resId2, emptyOverwrite);
+    await token.acceptResource(tokenId, 0);
+    await token.acceptResource(tokenId, 0);
   }
 });

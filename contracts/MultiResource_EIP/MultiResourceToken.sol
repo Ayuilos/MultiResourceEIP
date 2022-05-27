@@ -412,6 +412,10 @@ contract MultiResourceToken is Context, IMultiResource {
             length == _activeResources[_tokenId].length,
             "MultiResource: Bad priority list length"
         );
+        require(
+            _msgSender() == ownerOf(_tokenId),
+            "MultiResource: only owner can set priority"
+        );
         _activeResourcePriorities[_tokenId] = _priorities;
 
         emit ResourcePrioritySet(_tokenId);
