@@ -481,7 +481,7 @@ contract MultiResourceToken is Context, IMultiResource {
     }
 
     function getPendingResObjectByIndex(uint256 _tokenId, uint256 _index) public virtual view returns(IResourceStorage.Resource memory) {
-        bytes16 localResourceId = getActiveResources(_tokenId)[_index];
+        bytes16 localResourceId = getPendingResources(_tokenId)[_index];
         LocalResource memory _localResource = _localResources[localResourceId];
         (address _storage, bytes8 _id) = (_localResource.resourceAddress, _localResource.resourceId);
         return getResourceObject(_storage, _id);

@@ -131,6 +131,14 @@ describe('MultiResource', async () => {
         [resId, srcDefault, thumbDefault, metaURIDefault, customDefault],
         [resId2, srcDefault, thumbDefault, metaURIDefault, customDefault],
       ]);
+
+      expect(await token.getPendingResObjectByIndex(tokenId, 0)).to.eql([
+        resId,
+        srcDefault,
+        thumbDefault,
+        metaURIDefault,
+        customDefault,
+      ]);
     });
 
     it('cannot add non existing resource to token', async function () {
@@ -214,6 +222,14 @@ describe('MultiResource', async () => {
 
       const pending = await token.getFullPendingResources(tokenId);
       expect(pending).to.be.eql([]);
+
+      expect(await token.getResObjectByIndex(tokenId, 0)).to.eql([
+        resId,
+        srcDefault,
+        thumbDefault,
+        metaURIDefault,
+        customDefault,
+      ]);
     });
 
     it('cannot accept resource twice', async function () {
