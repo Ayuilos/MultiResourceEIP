@@ -312,6 +312,14 @@ contract MultiResourceToken is Context, IMultiResource {
     //                RESOURCES
     ////////////////////////////////////////
 
+    function _setFallbackURI(string memory fallbackURI) internal {
+        _fallbackURI = fallbackURI;
+    }
+
+    function getFallbackURI() external view returns (string memory) {
+        return _fallbackURI;
+    }
+
     function _addResourceToToken(
         uint256 _tokenId,
         bytes8 _resourceId,
@@ -480,7 +488,7 @@ contract MultiResourceToken is Context, IMultiResource {
     }
 
     function getAllResources() public view returns (bytes8[] memory) {
-      return _allResources;
+        return _allResources;
     }
 
     //resource storage

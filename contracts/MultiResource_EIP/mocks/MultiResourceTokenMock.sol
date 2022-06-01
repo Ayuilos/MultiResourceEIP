@@ -10,12 +10,16 @@ contract MultiResourceTokenMock is MultiResourceToken {
 
     constructor(string memory name_, string memory symbol_)
     MultiResourceToken(name_, symbol_) {
-      _setIssuer(_msgSender());
+        _setIssuer(_msgSender());
     }
 
     modifier onlyIssuer() {
         require(_msgSender() == _issuer, "RMRK: Only issuer");
         _;
+    }
+
+    function setFallbackURI(string memory fallbackURI) external onlyIssuer {
+        _setFallbackURI(fallbackURI);
     }
 
     function setIssuer(address issuer) external onlyIssuer {

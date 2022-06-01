@@ -417,6 +417,13 @@ describe('MultiResource', async () => {
     });
   });
 
+  describe('Token URI', async function () {
+    it('Can set fallback URI', async function () {
+      await token.setFallbackURI('TestURI');
+      expect(await token.getFallbackURI()).to.be.eql('TestURI');
+    });
+  });
+
   async function addResources(ids: string[]): Promise<void> {
     ids.forEach(async (resId) => {
       await token.addResourceEntry(resId, srcDefault, thumbDefault, metaURIDefault, customDefault);
