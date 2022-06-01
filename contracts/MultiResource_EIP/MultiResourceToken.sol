@@ -321,101 +321,101 @@ contract MultiResourceToken is Context, IMultiResource {
     }
 
     function _addResourceToToken(
-        uint256 _tokenId,
-        bytes8 _resourceId,
-        bytes8 _overwrites
+        uint256 tokenId,
+        bytes8 resourceId,
+        bytes8 overwrites
     ) internal virtual {
 
         require(
-            _owners[_tokenId] != address(0),
+            _owners[tokenId] != address(0),
             "ERC721: owner query for nonexistent token"
         );
 
         require(
-            _tokenResources[_tokenId][_resourceId] == false,
+            _tokenResources[tokenId][resourceId] == false,
             "MultiResource: Resource already exists on token"
         );
 
         require(
-            getResource(_resourceId).id != bytes8(0),
+            getResource(resourceId).id != bytes8(0),
             "MultiResource: Resource not found in storage"
         );
 
         require(
-            _pendingResources[_tokenId].length < 128,
+            _pendingResources[tokenId].length < 128,
             "MultiResource: Max pending resources reached"
         );
 
-        _tokenResources[_tokenId][_resourceId] = true;
+        _tokenResources[tokenId][resourceId] = true;
 
-        _pendingResources[_tokenId].push(_resourceId);
+        _pendingResources[tokenId].push(resourceId);
 
-        if (_overwrites != bytes8(0)) {
-            _resourceOverwrites[_tokenId][_resourceId] = _overwrites;
-            emit ResourceOverwriteProposed(_tokenId, _resourceId, _overwrites);
+        if (overwrites != bytes8(0)) {
+            _resourceOverwrites[tokenId][resourceId] = overwrites;
+            emit ResourceOverwriteProposed(tokenId, resourceId, overwrites);
         }
 
-        emit ResourceAddedToToken(_tokenId, _resourceId);
+        emit ResourceAddedToToken(tokenId, resourceId);
     }
 
-    function acceptResource(uint256 _tokenId, uint256 index) external virtual {
-        require(index < _pendingResources[_tokenId].length, "MultiResource: index out of bounds");
+    function acceptResource(uint256 tokenId, uint256 index) external virtual {
+        require(index < _pendingResources[tokenId].length, "MultiResource: index out of bounds");
         require(
-            _msgSender() == ownerOf(_tokenId),
+            _msgSender() == ownerOf(tokenId),
             "MultiResource: not owner"
         );
-        bytes8 _resourceId = _pendingResources[_tokenId][index];
-        _pendingResources[_tokenId].removeItemByIndex(0);
+        bytes8 resourceId = _pendingResources[tokenId][index];
+        _pendingResources[tokenId].removeItemByIndex(0);
 
-        bytes8 overwrite = _resourceOverwrites[_tokenId][_resourceId];
+        bytes8 overwrite = _resourceOverwrites[tokenId][resourceId];
         if (overwrite != bytes8(0)) {
             // We could check here that the resource to overwrite actually exists but it is probably harmless.
-            _activeResources[_tokenId].removeItemByValue(overwrite);
-            emit ResourceOverwritten(_tokenId, overwrite);
-            delete(_resourceOverwrites[_tokenId][_resourceId]);
+            _activeResources[tokenId].removeItemByValue(overwrite);
+            emit ResourceOverwritten(tokenId, overwrite);
+            delete(_resourceOverwrites[tokenId][resourceId]);
         }
-        _activeResources[_tokenId].push(_resourceId);
+        _activeResources[tokenId].push(resourceId);
         //Push 0 value of uint16 to array, e.g., uninitialized
-        _activeResourcePriorities[_tokenId].push(uint16(0));
-        emit ResourceAccepted(_tokenId, _resourceId);
+        _activeResourcePriorities[tokenId].push(uint16(0));
+        emit ResourceAccepted(tokenId, resourceId);
     }
 
-    function rejectResource(uint256 _tokenId, uint256 index) external virtual {
-        require(index < _pendingResources[_tokenId].length, "MultiResource: index out of bounds");
+    function rejectResource(uint256 tokenId, uint256 index) external virtual {
+        require(index < _pendingResources[tokenId].length, "MultiResource: index out of bounds");
         require(
-            _pendingResources[_tokenId].length > index,
+            _pendingResources[tokenId].length > index,
             "MultiResource: Pending child index out of range"
         );
         require(
-            _msgSender() == ownerOf(_tokenId),
+            _msgSender() == ownerOf(tokenId),
             "MultiResource: not owner"
         );
 
-        bytes8 _resourceId = _pendingResources[_tokenId][index];
-        _pendingResources[_tokenId].removeItemByValue(_resourceId);
-        _tokenResources[_tokenId][_resourceId] = false;
+        bytes8 resourceId = _pendingResources[tokenId][index];
+        _pendingResources[tokenId].removeItemByValue(resourceId);
+        _tokenResources[tokenId][resourceId] = false;
 
-        emit ResourceRejected(_tokenId, _resourceId);
+        emit ResourceRejected(tokenId, resourceId);
     }
 
-    function rejectAllResources(uint256 _tokenId) external virtual {
-        delete(_pendingResources[_tokenId]);
-        emit ResourceRejected(_tokenId, bytes8(0));
+    function rejectAllResources(uint256 tokenId) external virtual {
+        delete(_pendingResources[tokenId]);
+        emit ResourceRejected(tokenId, bytes8(0));
     }
 
-    function setPriority(uint256 _tokenId, uint16[] memory _priorities) external virtual {
-        uint256 length = _priorities.length;
+    function setPriority(uint256 tokenId, uint16[] memory priorities) external virtual {
+        uint256 length = priorities.length;
         require(
-            length == _activeResources[_tokenId].length,
+            length == _activeResources[tokenId].length,
             "MultiResource: Bad priority list length"
         );
         require(
-            _msgSender() == ownerOf(_tokenId),
+            _msgSender() == ownerOf(tokenId),
             "MultiResource: not owner"
         );
-        _activeResourcePriorities[_tokenId] = _priorities;
+        _activeResourcePriorities[tokenId] = priorities;
 
-        emit ResourcePrioritySet(_tokenId);
+        emit ResourcePrioritySet(tokenId);
     }
 
     function getActiveResources(uint256 tokenId) public virtual view returns(bytes8[] memory) {
@@ -430,8 +430,8 @@ contract MultiResourceToken is Context, IMultiResource {
         return _activeResourcePriorities[tokenId];
     }
 
-    function getResourceOverwrites(uint256 _tokenId, bytes8 _resId) public virtual view returns(bytes8) {
-        return _resourceOverwrites[_tokenId][_resId];
+    function getResourceOverwrites(uint256 tokenId, bytes8 resId) public virtual view returns(bytes8) {
+        return _resourceOverwrites[tokenId][resId];
     }
 
     function tokenURI(uint256 tokenId) public view virtual returns (string memory) {
@@ -455,13 +455,13 @@ contract MultiResourceToken is Context, IMultiResource {
 
     //Optionals
 
-    function getResObjectByIndex(uint256 _tokenId, uint256 _index) public virtual view returns(Resource memory) {
-        bytes8 resourceId = getActiveResources(_tokenId)[_index];
+    function getResObjectByIndex(uint256 tokenId, uint256 index) public virtual view returns(Resource memory) {
+        bytes8 resourceId = getActiveResources(tokenId)[index];
         return getResource(resourceId);
     }
 
-    function getPendingResObjectByIndex(uint256 _tokenId, uint256 _index) public virtual view returns(Resource memory) {
-        bytes8 resourceId = getPendingResources(_tokenId)[_index];
+    function getPendingResObjectByIndex(uint256 tokenId, uint256 index) public virtual view returns(Resource memory) {
+        bytes8 resourceId = getPendingResources(tokenId)[index];
         return getResource(resourceId);
     }
 
@@ -531,12 +531,12 @@ contract MultiResourceToken is Context, IMultiResource {
         return resource_;
     }
 
-    function setTokenEnumeratedResource(bytes8 _resourceId, bool state) public virtual {
-        _tokenEnumeratedResource[_resourceId] = state;
+    function setTokenEnumeratedResource(bytes8 resourceId, bool state) public virtual {
+        _tokenEnumeratedResource[resourceId] = state;
     }
 
-    function isTokenEnumeratedResource(bytes8 _resourceId) public view virtual returns(bool) {
-        return _tokenEnumeratedResource[_resourceId];
+    function isTokenEnumeratedResource(bytes8 resourceId) public view virtual returns(bool) {
+        return _tokenEnumeratedResource[resourceId];
     }
 
 }
