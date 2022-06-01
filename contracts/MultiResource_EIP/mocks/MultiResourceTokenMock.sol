@@ -6,7 +6,29 @@ import "../MultiResourceToken.sol";
 
 contract MultiResourceTokenMock is MultiResourceToken {
 
-    constructor(string memory name_, string memory symbol_) MultiResourceToken(name_, symbol_) {}
+    address private _issuer;
+
+    constructor(string memory name_, string memory symbol_)
+    MultiResourceToken(name_, symbol_) {
+      _setIssuer(_msgSender());
+    }
+
+    modifier onlyIssuer() {
+        require(_msgSender() == _issuer, "RMRK: Only issuer");
+        _;
+    }
+
+    function setIssuer(address issuer) external onlyIssuer {
+        _setIssuer(issuer);
+    }
+
+    function _setIssuer(address issuer) private {
+        _issuer = issuer;
+    }
+
+    function getIssuer() external view returns (address) {
+        return _issuer;
+    }
 
     function mint(address to, uint256 tokenId) external {
         _mint(to, tokenId);
@@ -14,11 +36,20 @@ contract MultiResourceTokenMock is MultiResourceToken {
 
     function addResourceToToken(
         uint256 _tokenId,
-        address _resourceAddress,
         bytes8 _resourceId,
-        bytes16 _overwrites
+        bytes8 _overwrites
     ) external virtual {
-        _addResourceToToken( _tokenId, _resourceAddress, _resourceId, _overwrites);
+        _addResourceToToken( _tokenId, _resourceId, _overwrites);
+    }
+
+    function addResourceEntry(
+        bytes8 _id,
+        string memory _src,
+        string memory _thumb,
+        string memory _metadataURI,
+        bytes memory _custom
+    ) external virtual onlyIssuer {
+        _addResourceEntry(_id, _src, _thumb, _metadataURI, _custom);
     }
 
 }
