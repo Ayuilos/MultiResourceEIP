@@ -12,7 +12,7 @@ interface IMultiResource is IERC721 {
         string src; //32+
         string thumb; //32+
         string metadataURI; //32+
-        bytes custom;
+        bytes16[] custom;
     }
 
     event ResourceAddedToToken(uint256 indexed tokenId, bytes8 resourceId);
@@ -46,6 +46,8 @@ interface IMultiResource is IERC721 {
     function getResourceOverwrites(uint256 _tokenId, bytes8 _resId) external view returns(bytes8);
 
     function getResource(bytes8 _id) external view returns (Resource memory);
+
+    function getCustomResourceData(bytes8 resourceId, bytes16 customResourceId) external view returns (bytes memory);
 
     function tokenURI(uint256 _tokenId) external view returns (string memory);
 

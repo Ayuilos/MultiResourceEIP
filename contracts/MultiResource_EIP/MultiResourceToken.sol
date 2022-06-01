@@ -54,6 +54,9 @@ contract MultiResourceToken is Context, IMultiResource {
     //Mapping of bytes8 resource ID to tokenEnumeratedResource for tokenURI
     mapping(bytes8 => bool) private _tokenEnumeratedResource;
 
+    //Mapping of bytes16 custom field to bytes data
+    mapping(bytes8 => mapping (bytes16 => bytes)) private _customResourceData;
+
     //List of all resources
     bytes8[] private _allResources;
 
@@ -491,6 +494,10 @@ contract MultiResourceToken is Context, IMultiResource {
         return _allResources;
     }
 
+    function getCustomResourceData(bytes8 resourceId, bytes16 customResourceId) public view returns (bytes memory) {
+        return _customResourceData[resourceId][customResourceId];
+    }
+
     //resource storage
 
     function _addResourceEntry(
@@ -498,7 +505,7 @@ contract MultiResourceToken is Context, IMultiResource {
         string memory _src,
         string memory _thumb,
         string memory _metadataURI,
-        bytes memory _custom
+        bytes16[] memory _custom
     ) internal {
         require(_id != bytes8(0), "RMRK: Write to zero");
         require(

@@ -43,9 +43,8 @@ contract StatBlockConsumer {
         uint8 INT;
     }
 
-    function getStatBlock(address tokenAddress, uint256 tokenId, uint256 resourceIndex) public view returns (StatBlock memory stats) {
-        IMultiResource.Resource memory statBlockResource = IMultiResource(tokenAddress).getResObjectByIndex(tokenId, resourceIndex);
-        bytes memory statBytes = statBlockResource.custom;
+    function getStatBlock(address tokenAddress, bytes8 resourceId, bytes16 customResourceId) public view returns (StatBlock memory stats) {
+        bytes memory statBytes = IMultiResource(tokenAddress).getCustomResourceData(resourceId, customResourceId);
         stats = abi.decode(statBytes, (StatBlock));
     }
 

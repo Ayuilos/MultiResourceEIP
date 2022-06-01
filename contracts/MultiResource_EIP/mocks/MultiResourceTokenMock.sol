@@ -51,7 +51,7 @@ contract MultiResourceTokenMock is MultiResourceToken {
         string memory _src,
         string memory _thumb,
         string memory _metadataURI,
-        bytes memory _custom
+        bytes16[] memory _custom
     ) external virtual onlyIssuer {
         _addResourceEntry(_id, _src, _thumb, _metadataURI, _custom);
     }
