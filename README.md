@@ -11,13 +11,14 @@ An NFT can have multiple resources (outputs), and orders them by priority. They 
 
 There are four key use cases that the current ERC721 standard is ill-equipped to handle:
 
-cross-metaverse compatibility
-multi-media output
-media redundancy
-NFT evolution
+- cross-metaverse compatibility
+- multi-media output
+- media redundancy
+- NFT evolution
+
 Let us look at each in depth.
 
-Cross-metaverse compatibility
+### Cross-metaverse compatibility
 Perhaps better phrased as cross-engine compatibility, solves the (very valid) complaint of gamer communities when they say that a skin for Counterstrike is not portable into something like Fortnite because the engines are different - it is not a simple matter of just having an NFT.
 
 With Multi-resource NFTs, it is.
@@ -28,15 +29,15 @@ When using the NFT in one such game, not only do the game developers not need to
 
 After the fact, this NFT can be given further utility by means of new additional resources: more games, more skins, appended to the same NFT. Thus, a game skin as an NFT becomes an ever-evolving NFT of infinite utility.
 
-Multi-media output
+### Multi-media output
 An NFT that is an eBook can be both a PDF and an audio file at the same time, and depending on which software loads it, that is the media output that gets consumed: PDF if loaded into Kindle, audio if loaded into Audible. Additionally, an extra resource that is a simple image can be present in the NFT, intended for showing on the various marketplaces, SERP pages, portfolio trackers and others - perhaps the book’s cover image.
 
-Media Redundancy
+### Media Redundancy
 Many NFTs are minted hastily without best practices in mind - specifically, many NFTs are minted with metadata centralized on a server somewhere or, in some cases, a hardcoded IPFS gateway which can also go down, instead of just an IPFS hash.
 
 By adding the same metadata file as different resources, e.g., one resource of a metadata and its linked image on Arweave, one resource of this same combo on Sia, another of the same combo on IPFS, etc., the resilience of the metadata and its referenced media increases exponentially as the chances of all the protocols going down at once become ever less likely.
 
-NFT Evolution
+### NFT Evolution
 Many NFTs, particularly game related ones, require evolution. This is especially the case in modern metaverses where no metaverse is actually a metaverse - it is just a multiplayer game hosted on someone’s server which replaced username/password logins with reading an NFT’s balance.
 
 When the server goes down or the game shuts down, the player ends up with nothing (loss of experience) or something unrelated (resources or accessories unrelated to the game experience, spamming the wallet, incompatible with other “verses” - see cross-metaverse compatibility above).
@@ -331,6 +332,7 @@ interface IResourceStorage {
 
 }
 ```
+
 ## Rationale
 
 #Resource fields
