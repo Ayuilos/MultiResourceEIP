@@ -16,7 +16,7 @@ describe('MultiResource', async () => {
   const srcDefault = 'src';
   const thumbDefault = 'thumb';
   const metaURIDefault = 'metaURI';
-  const customDefault = ethers.utils.hexZeroPad('0x2222', 8);
+  const customDefault: string[] = [];
 
   beforeEach(async () => {
     const [signersOwner, ...signersAddr] = await ethers.getSigners();
@@ -418,9 +418,32 @@ describe('MultiResource', async () => {
   });
 
   describe('Token URI', async function () {
-    it('Can set fallback URI', async function () {
+    it('can set fallback URI', async function () {
       await token.setFallbackURI('TestURI');
       expect(await token.getFallbackURI()).to.be.eql('TestURI');
+    });
+
+    it('gets fallback URI if no active resources on token', async function () {
+      const tokenId = 1;
+      const fallBackUri = 'fallback404';
+      await token.mint(owner.address, tokenId);
+      await token.setFallbackURI(fallBackUri);
+      expect(await token.tokenURI(tokenId)).to.eql(fallBackUri);
+    });
+
+    it('can get token URI when resource is not enumerated', async function () {
+      const tokenId = 1;
+      await addResourcesToToken(tokenId);
+      expect(await token.tokenURI(tokenId)).to.eql(metaURIDefault);
+    });
+
+    it('can get token URI when resource is enumerated', async function () {
+      const tokenId = 1;
+      const resId = ethers.utils.hexZeroPad('0x0001', 8);
+      await addResourcesToToken(tokenId);
+      await token.setTokenEnumeratedResource(resId, true);
+      expect(await token.isTokenEnumeratedResource(resId)).to.eql(true);
+      expect(await token.tokenURI(tokenId)).to.eql(`${metaURIDefault}${tokenId}`);
     });
   });
 
