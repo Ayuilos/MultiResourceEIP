@@ -503,10 +503,6 @@ contract MultiResourceToken is Context, IMultiResource {
         _customResourceData[resourceId][customResourceId] = data;
     }
 
-    function addCustomDataToResource(bytes8 resourceId, bytes16 customResourceId) internal {
-        _resources[resourceId].custom.push(customResourceId);
-    }
-
     function addCustomDataRefToResource(bytes8 resourceId, bytes16 customResourceId) internal {
         _resources[resourceId].custom.push(customResourceId);
     }
