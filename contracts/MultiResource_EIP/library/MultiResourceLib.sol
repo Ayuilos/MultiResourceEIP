@@ -23,6 +23,14 @@ library MultiResourceLib {
     array.pop();
   }
 
+  //For reasource storage array
+  function removeItemByIndex(bytes16[] storage array, uint256 index) internal {
+    //Check to see if this is already gated by require in all calls
+    require(index < array.length);
+    array[index] = array[array.length-1];
+    array.pop();
+  }
+
   // indexOf, indexOfFromEnd, and contains adapted from Cryptofin-Solidity arrayUtils
   function indexOf(bytes8[] memory A, bytes8 a) internal pure returns (uint256, bool) {
     uint256 length = A.length;

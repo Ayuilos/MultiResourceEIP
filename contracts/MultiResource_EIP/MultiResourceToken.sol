@@ -12,6 +12,7 @@ contract MultiResourceToken is Context, IMultiResource {
 
     using MultiResourceLib for uint256;
     using MultiResourceLib for bytes8[];
+    using MultiResourceLib for bytes16[];
     using Address for address;
     using Strings for uint256;
 
@@ -496,6 +497,22 @@ contract MultiResourceToken is Context, IMultiResource {
 
     function getCustomResourceData(bytes8 resourceId, bytes16 customResourceId) public view returns (bytes memory) {
         return _customResourceData[resourceId][customResourceId];
+    }
+
+    function setCustomResourceData(bytes8 resourceId, bytes16 customResourceId, bytes memory data) internal {
+        _customResourceData[resourceId][customResourceId] = data;
+    }
+
+    function addCustomDataToResource(bytes8 resourceId, bytes16 customResourceId) internal {
+        _resources[resourceId].custom.push(customResourceId);
+    }
+
+    function addCustomDataRefToResource(bytes8 resourceId, bytes16 customResourceId) internal {
+        _resources[resourceId].custom.push(customResourceId);
+    }
+
+    function removeCustomDataRefToResource(bytes8 resourceId, uint256 index) internal {
+        _resources[resourceId].custom.removeItemByIndex(index);
     }
 
     //resource storage
