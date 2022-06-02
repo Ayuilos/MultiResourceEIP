@@ -91,7 +91,7 @@ interface IERCMultiResource /* is ERC721 */ {
     event ResourcePrioritySet(uint256 indexed tokenId);
 
     /*
-    @dev This emits whenever a pending resource also proposes to overwrite an exisitng resource.
+    @dev This emits whenever a pending resource also proposes to overwrite an existing resource.
     */
     event ResourceOverwriteProposed(uint256 indexed tokenId, bytes8 resourceId, bytes8 overwrites);
 
@@ -101,7 +101,7 @@ interface IERCMultiResource /* is ERC721 */ {
     event ResourceOverwritten(uint256 indexed tokenId, bytes8 overwritten);
 
     /*
-    @notice Accepts the resouce from pending.
+    @notice Accepts the resource from pending.
     @dev Moves the resource from the pending array to the accepted array. Array
       order is not preserved.
     @param tokenId the token to accept a resource
@@ -110,7 +110,7 @@ interface IERCMultiResource /* is ERC721 */ {
     function acceptResource(uint256 tokenId, uint256 resourceIndex) external;
 
     /*
-    @notice Reject a resource, dropping it from the pending array.
+    @notice Rejects a resource, dropping it from the pending array.
     @dev Drops the resource from the pending array. Array order is not preserved.
     @param tokenId the token to reject a resource
     @param resourceIndex the index of the resource to reject
@@ -118,14 +118,14 @@ interface IERCMultiResource /* is ERC721 */ {
     function rejectResource(uint256 tokenId, uint256 resourceIndex) external;
 
     /*
-    @notice Reject all resources, clearing the pending array.
+    @notice Rejects all resources, clearing the pending array.
     @dev Sets the pending array to empty.
     @param tokenId the token to reject a resource
     */
     function rejectAllResources(uint256 tokenId) external;
 
     /*
-    @notice Set the priority of the active resources array.
+    @notice Sets the priority of the active resources array.
     @dev Priorities have a 1:1 relationship with their corresponding index in
       the active resources array. E.G, a priority array of [1, 3, 2] indicates
       that the the active resource at index 1 of the active resource array
@@ -139,53 +139,40 @@ interface IERCMultiResource /* is ERC721 */ {
     function setPriority(uint256 tokenId, uint16[] memory priorities) external;
 
     /*
-    @notice Returns an array of byte16 identifiers from the active resources
+    @notice Returns an array of byte8 identifiers from the active resources
       array for resource lookup.
-    @dev Each bytes8 resource corresponds to a local mapping of
-      (bytes16 => (address, bytes8)), where address is the address of a
-      resource storage contract, and bytes8 is the id of the relevant resource
-      on that storage contract. See addResourceEntry dev comment for rationale.
+    @dev Each bytes8 resource corresponds to the id of the relevant resource
+    on the storage. See addResourceEntry dev comment for rationale.
     @param tokenId the token of the active resource set to get
     @return an array of bytes8 resource ids corresponding to active resources
     */
     function getActiveResources(uint256 tokenId) external view returns(bytes8[] memory);
 
     /*
-    @notice Returns an array of byte16 identifiers from the pending resources
+    @notice Returns an array of byte8 identifiers from the pending resources
       array for resource lookup.
-    @dev Each bytes8 resource corresponds to a local mapping of
-      (bytes16 => (address, bytes8)), where address is the address of a
-      resource storage contract, and bytes8 is the id of the relevant resource
-      on that storage contract. See addResourceEntry dev comment for rationale.
-    @param tokenId the token of the active resource set to get
+    @dev Each bytes8 resource corresponds to the id of the relevant resource
+      on the storage. See addResourceEntry dev comment for rationale.
+    @param tokenId the token of the pending resource set to get
     @return an array of bytes8 resource ids corresponding to pending resources
     */
     function getPendingResources(uint256 tokenId) external view returns(bytes8[] memory);
 
     /*
-    @notice Returns the resource object from a target resource storage contract.
-    @param storage the address of the resource storage contract
-    @param id the bytes8 identifier of the resource to query
-    @return a resource object
-    */
-    function getResourceObject(address storage, bytes8 id) public virtual view returns (IResourceStorage.Resource memory);
-
-    /*
     @notice Returns an array of uint16 resource priorities
     @dev No checking is done on resource priority ranges, sorting must be
-      handled by the frontend.kenId` is not a valid NFT.
-    /// @param _tokenId The
+      handled by the frontend.
     @param tokenId the token of the active resource set to get
     @return an array of uint16 resource priorities corresponding to active resources
     */
     function getActiveResourcePriorities(uint256 tokenId) external view returns(uint16[] memory);
 
     /*
-    @notice Returns the bytes8 resource ID a given token will overwrite if
+    @notice Returns the bytes8 resource ID a given token will be overwritten if
       overwrite is enabled for a pending resource.
-    @param tokenId the token of the active pending overwrite
-    @param resId the resource ID which will be potentially overwritten
-    @return a bytes8 corresponding to the resource ID of the resource that will overwrite @param resId
+    @param tokenId the token of the pending overwrite
+    @param resId the resource ID which may overwrite another
+    @return a bytes8 corresponding to the resource ID of the resource that will be overwritten
     */
     function getResourceOverwrites(uint256 tokenId, bytes8 resId) external view returns(bytes8);
 
