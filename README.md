@@ -67,27 +67,23 @@ interface IERCMultiResource /* is ERC721 */ {
       string src;
       string thumb;
       string metadataURI;
-      bytes custom;
+      bytes16[] custom;
     }
 
-    struct LocalResource {
-        address resourceAddress;
-        bytes8 resourceId;
-    }
     /*
     @dev This emits whenever a pending resource has been added to a token's pending resources.
     */
-    event ResourceAddedToToken(uint256 indexed tokenId, bytes16 localResourceId);
+    event ResourceAddedToToken(uint256 indexed tokenId, bytes8 resourceId);
 
     /*
     @dev This emits whenever a resource has accepted by the token owner.
     */
-    event ResourceAccepted(uint256 indexed tokenId, bytes16 localResourceId);
+    event ResourceAccepted(uint256 indexed tokenId, bytes8 resourceId);
 
     /*
     @dev This emits whenever a pending resource has been dropped from the pending resources array.
     */
-    event ResourceRejected(uint256 indexed tokenId, bytes16 localResourceId);
+    event ResourceRejected(uint256 indexed tokenId, bytes8 resourceId);
 
     /*
     @dev This emits whenever a resource's priority has been set.
@@ -97,12 +93,12 @@ interface IERCMultiResource /* is ERC721 */ {
     /*
     @dev This emits whenever a pending resource also proposes to overwrite an exisitng resource.
     */
-    event ResourceOverwriteProposed(uint256 indexed tokenId, bytes16 localResourceId, bytes16 overwrites);
+    event ResourceOverwriteProposed(uint256 indexed tokenId, bytes8 resourceId, bytes8 overwrites);
 
     /*
     @dev This emits whenever a pending resource overwrites an existing resource.
     */
-    event ResourceOverwritten(uint256 indexed tokenId, bytes16 overwritten);
+    event ResourceOverwritten(uint256 indexed tokenId, bytes8 overwritten);
 
     /*
     @notice Accepts the resouce from pending.
@@ -145,35 +141,26 @@ interface IERCMultiResource /* is ERC721 */ {
     /*
     @notice Returns an array of byte16 identifiers from the active resources
       array for resource lookup.
-    @dev Each bytes16 resource corresponds to a local mapping of
+    @dev Each bytes8 resource corresponds to a local mapping of
       (bytes16 => (address, bytes8)), where address is the address of a
       resource storage contract, and bytes8 is the id of the relevant resource
       on that storage contract. See addResourceEntry dev comment for rationale.
     @param tokenId the token of the active resource set to get
-    @return an array of bytes16 local resource ids corresponding to active resources
+    @return an array of bytes8 resource ids corresponding to active resources
     */
-    function getActiveResources(uint256 tokenId) external view returns(bytes16[] memory);
+    function getActiveResources(uint256 tokenId) external view returns(bytes8[] memory);
 
     /*
     @notice Returns an array of byte16 identifiers from the pending resources
       array for resource lookup.
-    @dev Each bytes16 resource corresponds to a local mapping of
+    @dev Each bytes8 resource corresponds to a local mapping of
       (bytes16 => (address, bytes8)), where address is the address of a
       resource storage contract, and bytes8 is the id of the relevant resource
       on that storage contract. See addResourceEntry dev comment for rationale.
     @param tokenId the token of the active resource set to get
-    @return an array of bytes16 local resource ids corresponding to pending resources
+    @return an array of bytes8 resource ids corresponding to pending resources
     */
-    function getPendingResources(uint256 tokenId) external view returns(bytes16[] memory);
-
-    /*
-    @notice Returns the local resource associated with its bytes16 key.
-    @dev The localResource struct consists of an address and a bytes8, corresponding to the
-      resource storage contract and the bytes8 key of the resource on that contract.
-    @param resourceKey a bytes16 identifier for a local resource object
-    @return a LocalResource object
-    */
-    function getLocalResource(bytes16 resourceKey) public virtual view returns(LocalResource memory);
+    function getPendingResources(uint256 tokenId) external view returns(bytes8[] memory);
 
     /*
     @notice Returns the resource object from a target resource storage contract.
@@ -194,13 +181,13 @@ interface IERCMultiResource /* is ERC721 */ {
     function getActiveResourcePriorities(uint256 tokenId) external view returns(uint16[] memory);
 
     /*
-    @notice Returns the bytes16 resource ID a given token will overwrite if
+    @notice Returns the bytes8 resource ID a given token will overwrite if
       overwrite is enabled for a pending resource.
     @param tokenId the token of the active pending overwrite
     @param resId the resource ID which will be potentially overwritten
-    @return a bytes16 corresponding to the local resource ID of the resource that will overwrite @param resId
+    @return a bytes8 corresponding to the resource ID of the resource that will overwrite @param resId
     */
-    function getResourceOverwrites(uint256 tokenId, bytes16 resId) external view returns(bytes16);
+    function getResourceOverwrites(uint256 tokenId, bytes8 resId) external view returns(bytes8);
 
     /*
     @notice Returns the src field of the first active resource on the token,
@@ -345,11 +332,11 @@ metadataURI: A string pointing to a metadata file associated with the resource
 custom: A bytes object that may be used to store generic data
 
 #Multi-Resource Storage Schema
-Resources are stored on a token as an array of bytes16 identifiers.
+Resources are stored on a token as an array of bytes8 identifiers.
 
-In order to reduce redundant on-chain string storage, multi resource tokens store resources by reference via a secondary storage contract. A resource entry on the storage contract is stored via a bytes8 mapping to resource data. A bytes16 identifier is then computed from the hash of (address storageContractAddress, bytes8 resourceId). Both address and bytes8 identifier are then stored on the local contract as a bytes16 mapping to this reference.
+In order to reduce redundant on-chain string storage, multi resource tokens store resources by reference via a secondary storage contract. A resource entry on the storage contract is stored via a bytes8 mapping to resource data. A bytes8 identifier is then computed from the hash of (address storageContractAddress, bytes8 resourceId). Both address and bytes8 identifier are then stored on the local contract as a bytes8 mapping to this reference.
 
-A resource array is an array of these bytes16 references.
+A resource array is an array of these bytes8 references.
 
 Resources are stored on a separate contract and referred to by reference for two reasons: generic reference storage on the multiresource token contract for variable resource struct types, and to reduce redundant storage on the multiresource token contract. With this structure, a generic resource can be added once on the storage contract, and a reference to it can be added to it once on the token contract. Implementers can then use string concatenation to procedurally generate a link to a content-addressed archive based on the base SRC in the resource and the token ID. Storing the resource on a new token will only take 16 bytes of storage in the resource array per token for repeated / tokenID dependent resources.
 
