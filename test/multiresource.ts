@@ -445,6 +445,100 @@ describe('MultiResource', async () => {
       expect(await token.isTokenEnumeratedResource(resId)).to.eql(true);
       expect(await token.tokenURI(tokenId)).to.eql(`${metaURIDefault}${tokenId}`);
     });
+
+    it('can get token URI at specific index', async function () {
+      const tokenId = 1;
+      const resId = ethers.utils.hexZeroPad('0x0001', 8);
+      const resId2 = ethers.utils.hexZeroPad('0x0002', 8);
+
+      await token.mint(owner.address, tokenId);
+      await token.addResourceEntry(resId, 'srcA', 'thumbA', 'UriA', customDefault);
+      await token.addResourceEntry(resId2, 'srcB', 'thumbB', 'UriB', customDefault);
+      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId2, emptyOverwrite);
+      await token.acceptResource(tokenId, 0);
+      await token.acceptResource(tokenId, 0);
+
+      expect(await token.tokenURIAtIndex(tokenId, 1)).to.eql('UriB');
+    });
+
+    it('can get token URI by specific custom value', async function () {
+      const tokenId = 1;
+      const resId = ethers.utils.hexZeroPad('0x0001', 8);
+      const resId2 = ethers.utils.hexZeroPad('0x0002', 8);
+      // We define some custom types and values which mean something to the issuer.
+      // Resource 1 has Width, Height and Type. Resource 2 has Area and Type.
+      const customDataWidthKey = ethers.utils.hexZeroPad('0x0001', 16);
+      const customDataWidthValue = ethers.utils.hexZeroPad('0x1111', 16);
+      const customDataHeightKey = ethers.utils.hexZeroPad('0x0002', 16);
+      const customDataHeightValue = ethers.utils.hexZeroPad('0x1111', 16);
+      const customDataTypeKey = ethers.utils.hexZeroPad('0x0003', 16);
+      const customDataTypeValueA = ethers.utils.hexZeroPad('0xAAAA', 16);
+      const customDataTypeValueB = ethers.utils.hexZeroPad('0xBBBB', 16);
+      const customDataAreaKey = ethers.utils.hexZeroPad('0x0004', 16);
+      const customDataAreaValue = ethers.utils.hexZeroPad('0x00FF', 16);
+
+      await token.mint(owner.address, tokenId);
+      await token.addResourceEntry(resId, 'srcA', 'thumbA', 'UriA', [
+        customDataWidthKey,
+        customDataHeightKey,
+        customDataTypeKey,
+      ]);
+      await token.addResourceEntry(resId2, 'srcB', 'thumbB', 'UriB', [
+        customDataTypeKey,
+        customDataAreaKey,
+      ]);
+      await token.setCustomResourceData(resId, customDataWidthKey, customDataWidthValue);
+      await token.setCustomResourceData(resId, customDataHeightKey, customDataHeightValue);
+      await token.setCustomResourceData(resId, customDataTypeKey, customDataTypeValueA);
+      await token.setCustomResourceData(resId2, customDataAreaKey, customDataAreaValue);
+      await token.setCustomResourceData(resId2, customDataTypeKey, customDataTypeValueB);
+
+      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId2, emptyOverwrite);
+      await token.acceptResource(tokenId, 0);
+      await token.acceptResource(tokenId, 0);
+
+      // Finally, user can get the right resource filtering by custom data.
+      // In this case, we filter by type being equal to 0xAAAA. (Whatever that means for the issuer)
+      expect(
+        await token.tokenURIForCustomValue(tokenId, customDataTypeKey, customDataTypeValueB),
+      ).to.eql('UriB');
+    });
+  });
+
+  it('gets fall back if matching value is not find on custom data', async function () {
+    const tokenId = 1;
+    const resId = ethers.utils.hexZeroPad('0x0001', 8);
+    const resId2 = ethers.utils.hexZeroPad('0x0002', 8);
+    // We define a custom data for 'type'.
+    const customDataTypeKey = ethers.utils.hexZeroPad('0x0001', 16);
+    const customDataTypeValueA = ethers.utils.hexZeroPad('0xAAAA', 16);
+    const customDataTypeValueB = ethers.utils.hexZeroPad('0xBBBB', 16);
+    const customDataTypeValueC = ethers.utils.hexZeroPad('0xCCCC', 16);
+    const customDataOtherKey = ethers.utils.hexZeroPad('0x0002', 16);
+
+    await token.mint(owner.address, tokenId);
+    await token.addResourceEntry(resId, 'srcA', 'thumbA', 'UriA', [customDataTypeKey]);
+    await token.addResourceEntry(resId2, 'srcB', 'thumbB', 'UriB', [customDataTypeKey]);
+    await token.setCustomResourceData(resId, customDataTypeKey, customDataTypeValueA);
+    await token.setCustomResourceData(resId2, customDataTypeKey, customDataTypeValueB);
+
+    await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+    await token.addResourceToToken(tokenId, resId2, emptyOverwrite);
+    await token.acceptResource(tokenId, 0);
+    await token.acceptResource(tokenId, 0);
+
+    await token.setFallbackURI('fallback404');
+
+    // No resource has this custom value for type:
+    expect(
+      await token.tokenURIForCustomValue(tokenId, customDataTypeKey, customDataTypeValueC),
+    ).to.eql('fallback404');
+    // No resource has this custom key:
+    expect(
+      await token.tokenURIForCustomValue(tokenId, customDataOtherKey, customDataTypeValueA),
+    ).to.eql('fallback404');
   });
 
   async function addResources(ids: string[]): Promise<void> {

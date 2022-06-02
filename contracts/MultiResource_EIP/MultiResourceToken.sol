@@ -439,8 +439,16 @@ contract MultiResourceToken is Context, IMultiResource {
     }
 
     function tokenURI(uint256 tokenId) public view virtual returns (string memory) {
-        if (_activeResources[tokenId].length > 0)  {
-            bytes8 activeResId = _activeResources[tokenId][0];
+        return _tokenURIAtIndex(tokenId, 0);
+    }
+
+    function tokenURIAtIndex(uint256 tokenId, uint256 index) public view virtual returns (string memory) {
+        return _tokenURIAtIndex(tokenId, index);
+    }
+
+    function _tokenURIAtIndex(uint256 tokenId, uint256 index) internal view virtual returns (string memory) {
+        if (_activeResources[tokenId].length > index)  {
+            bytes8 activeResId = _activeResources[tokenId][index];
             string memory URI;
             Resource memory _activeRes = getResource(activeResId);
             if (!_tokenEnumeratedResource[activeResId]) {
@@ -455,6 +463,19 @@ contract MultiResourceToken is Context, IMultiResource {
         else {
             return _fallbackURI;
         }
+    }
+
+    function tokenURIForCustomValue(uint256 tokenId, bytes16 customResourceId, bytes memory customResourceValue) public view virtual returns (string memory) {
+        bytes8[] memory activeResources = _activeResources[tokenId];
+        uint256 len = _activeResources[tokenId].length;
+        for (uint index; index<len;) {
+            bytes memory actualCustomResourceValue = getCustomResourceData(activeResources[index], customResourceId);
+            if (keccak256(actualCustomResourceValue) == keccak256(customResourceValue)) {
+                return _tokenURIAtIndex(tokenId, index);
+            }
+            unchecked {++index;}
+        }
+        return _fallbackURI;
     }
 
     //Optionals
@@ -499,15 +520,15 @@ contract MultiResourceToken is Context, IMultiResource {
         return _customResourceData[resourceId][customResourceId];
     }
 
-    function setCustomResourceData(bytes8 resourceId, bytes16 customResourceId, bytes memory data) internal {
+    function _setCustomResourceData(bytes8 resourceId, bytes16 customResourceId, bytes memory data) internal {
         _customResourceData[resourceId][customResourceId] = data;
     }
 
-    function addCustomDataRefToResource(bytes8 resourceId, bytes16 customResourceId) internal {
+    function _addCustomDataRefToResource(bytes8 resourceId, bytes16 customResourceId) internal {
         _resources[resourceId].custom.push(customResourceId);
     }
 
-    function removeCustomDataRefToResource(bytes8 resourceId, uint256 index) internal {
+    function _removeCustomDataRefToResource(bytes8 resourceId, uint256 index) internal {
         _resources[resourceId].custom.removeItemByIndex(index);
     }
 
