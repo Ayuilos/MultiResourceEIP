@@ -8,8 +8,8 @@ contract MultiResourceTokenMock is MultiResourceToken {
 
     address private _issuer;
 
-    constructor(string memory name_, string memory symbol_)
-    MultiResourceToken(name_, symbol_) {
+    constructor(string memory name, string memory symbol)
+    MultiResourceToken(name, symbol) {
         _setIssuer(_msgSender());
     }
 
@@ -39,21 +39,21 @@ contract MultiResourceTokenMock is MultiResourceToken {
     }
 
     function addResourceToToken(
-        uint256 _tokenId,
-        bytes8 _resourceId,
-        bytes8 _overwrites
+        uint256 tokenId,
+        bytes8 resourceId,
+        bytes8 overwrites
     ) external virtual {
-        _addResourceToToken( _tokenId, _resourceId, _overwrites);
+        _addResourceToToken(tokenId, resourceId, overwrites);
     }
 
     function addResourceEntry(
-        bytes8 _id,
-        string memory _src,
-        string memory _thumb,
-        string memory _metadataURI,
-        bytes16[] memory _custom
+        bytes8 id,
+        string memory src,
+        string memory thumb,
+        string memory metadataURI,
+        bytes16[] memory custom
     ) external virtual onlyIssuer {
-        _addResourceEntry(_id, _src, _thumb, _metadataURI, _custom);
+        _addResourceEntry(id, src, thumb, metadataURI, custom);
     }
 
     function setCustomResourceData(bytes8 resourceId, bytes16 customResourceId, bytes memory data) external onlyIssuer {

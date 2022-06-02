@@ -535,28 +535,28 @@ contract MultiResourceToken is Context, IMultiResource {
     //resource storage
 
     function _addResourceEntry(
-        bytes8 _id,
-        string memory _src,
-        string memory _thumb,
-        string memory _metadataURI,
-        bytes16[] memory _custom
+        bytes8 id,
+        string memory src,
+        string memory thumb,
+        string memory metadataURI,
+        bytes16[] memory custom
     ) internal {
-        require(_id != bytes8(0), "RMRK: Write to zero");
+        require(id != bytes8(0), "RMRK: Write to zero");
         require(
-            _resources[_id].id == bytes8(0),
+            _resources[id].id == bytes8(0),
             "RMRK: resource already exists"
         );
-        Resource memory resource_ = Resource({
-            id: _id,
-            src: _src,
-            thumb: _thumb,
-            metadataURI: _metadataURI,
-            custom: _custom
+        Resource memory resource = Resource({
+            id: id,
+            src: src,
+            thumb: thumb,
+            metadataURI: metadataURI,
+            custom: custom
         });
-        _resources[_id] = resource_;
-        _allResources.push(_id);
+        _resources[id] = resource;
+        _allResources.push(id);
 
-        emit ResourceStorageSet(_id);
+        emit ResourceStorageSet(id);
     }
 
     function getResource(bytes8 resourceId)
@@ -564,12 +564,12 @@ contract MultiResourceToken is Context, IMultiResource {
         view
         returns (Resource memory)
     {
-        Resource memory resource_ = _resources[resourceId];
+        Resource memory resource = _resources[resourceId];
         require(
-            resource_.id != bytes8(0),
+            resource.id != bytes8(0),
             "RMRK: No resource matching Id"
         );
-        return resource_;
+        return resource;
     }
 
     function setTokenEnumeratedResource(bytes8 resourceId, bool state) public virtual {
