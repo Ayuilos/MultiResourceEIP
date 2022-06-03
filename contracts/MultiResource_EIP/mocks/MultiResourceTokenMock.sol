@@ -9,7 +9,8 @@ contract MultiResourceTokenMock is MultiResourceToken {
     address private _issuer;
 
     constructor(string memory name, string memory symbol)
-    MultiResourceToken(name, symbol) {
+        MultiResourceToken(name, symbol)
+    {
         _setIssuer(_msgSender());
     }
 
@@ -22,19 +23,22 @@ contract MultiResourceTokenMock is MultiResourceToken {
         _setFallbackURI(fallbackURI);
     }
 
-    function setIssuer(address issuer) external onlyIssuer {
-        _setIssuer(issuer);
+    function setTokenEnumeratedResource(
+        bytes8 resourceId,
+        bool state
+    ) external onlyIssuer {
+        _setTokenEnumeratedResource(resourceId, state);
     }
 
-    function _setIssuer(address issuer) private {
-        _issuer = issuer;
+    function setIssuer(address issuer) external onlyIssuer {
+        _setIssuer(issuer);
     }
 
     function getIssuer() external view returns (address) {
         return _issuer;
     }
 
-    function mint(address to, uint256 tokenId) external {
+    function mint(address to, uint256 tokenId) external onlyIssuer {
         _mint(to, tokenId);
     }
 
@@ -42,7 +46,7 @@ contract MultiResourceTokenMock is MultiResourceToken {
         uint256 tokenId,
         bytes8 resourceId,
         bytes8 overwrites
-    ) external virtual {
+    ) external onlyIssuer {
         _addResourceToToken(tokenId, resourceId, overwrites);
     }
 
@@ -52,20 +56,34 @@ contract MultiResourceTokenMock is MultiResourceToken {
         string memory thumb,
         string memory metadataURI,
         bytes16[] memory custom
-    ) external virtual onlyIssuer {
+    ) external onlyIssuer {
         _addResourceEntry(id, src, thumb, metadataURI, custom);
     }
 
-    function setCustomResourceData(bytes8 resourceId, bytes16 customResourceId, bytes memory data) external onlyIssuer {
+    function setCustomResourceData(
+        bytes8 resourceId,
+        bytes16 customResourceId,
+        bytes memory data
+    ) external onlyIssuer {
         _setCustomResourceData(resourceId, customResourceId, data);
     }
 
-    function addCustomDataRefToResource(bytes8 resourceId, bytes16 customResourceId) external onlyIssuer {
+    function addCustomDataRefToResource(
+        bytes8 resourceId,
+        bytes16 customResourceId
+    ) external onlyIssuer {
         _addCustomDataRefToResource(resourceId, customResourceId);
     }
 
-    function removeCustomDataRefToResource(bytes8 resourceId, uint256 index) external onlyIssuer {
+    function removeCustomDataRefToResource(
+        bytes8 resourceId,
+        uint256 index
+    ) external onlyIssuer {
         _removeCustomDataRefToResource(resourceId, index);
+    }
+
+    function _setIssuer(address issuer) private {
+        _issuer = issuer;
     }
 
 }

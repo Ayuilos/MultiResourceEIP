@@ -10,11 +10,16 @@ interface IMultiResourceReceiver {
     ///  transfer. Return of other than the magic value MUST result in the
     ///  transaction being reverted.
     ///  Note: the contract address is always the message sender.
-    /// @param _operator The address which called `safeTransferFrom` function
-    /// @param _from The address which previously owned the token
-    /// @param _tokenId The NFT identifier which is being transferred
-    /// @param _data Additional data with no specified format
+    /// @param operator The address which called `safeTransferFrom` function
+    /// @param from The address which previously owned the token
+    /// @param tokenId The NFT identifier which is being transferred
+    /// @param data Additional data with no specified format
     /// @return `bytes4(keccak256("onMultiResourceReceived(address,address,uint256,bytes)"))`
     ///  unless throwing
-    function onMultiResourceReceived(address _operator, address _from, uint256 _tokenId, bytes memory _data) external returns(bytes4);
+    function onMultiResourceReceived(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes memory data
+    ) external returns(bytes4);
 }
