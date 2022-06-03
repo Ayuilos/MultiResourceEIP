@@ -105,17 +105,17 @@ interface IERCMultiResource /* is ERC721 */ {
     @dev Moves the resource from the pending array to the accepted array. Array
       order is not preserved.
     @param tokenId the token to accept a resource
-    @param resourceIndex the index of the resource to accept
+    @param index the index of the resource to accept
     */
-    function acceptResource(uint256 tokenId, uint256 resourceIndex) external;
+    function acceptResource(uint256 tokenId, uint256 index) external;
 
     /*
     @notice Rejects a resource, dropping it from the pending array.
     @dev Drops the resource from the pending array. Array order is not preserved.
     @param tokenId the token to reject a resource
-    @param resourceIndex the index of the resource to reject
+    @param index the index of the resource to reject
     */
-    function rejectResource(uint256 tokenId, uint256 resourceIndex) external;
+    function rejectResource(uint256 tokenId, uint256 index) external;
 
     /*
     @notice Rejects all resources, clearing the pending array.
@@ -175,6 +175,13 @@ interface IERCMultiResource /* is ERC721 */ {
     @return a bytes8 corresponding to the resource ID of the resource that will be overwritten
     */
     function getResourceOverwrites(uint256 tokenId, bytes8 resId) external view returns(bytes8);
+
+    /*
+    @notice Returns the resource at the id.
+    @dev Exact struct data types are left to the implementer
+    @param resourceId the id of the resource to return
+    */
+    function getResource(bytes8 resourceId) external view returns (Resource memory);
 
     /*
     @notice Returns the src field of the first active resource on the token,
@@ -287,24 +294,6 @@ interface ERC165 {
 
 }
 
-interface IResourceStorage {
-
-  struct Resource {
-      bytes8 id;
-      string src;
-      string thumb;
-      string metadataURI;
-      bytes custom;
-  }
-
-  /*
-  @notice Returns the resource at the id.
-  @dev Exact struct data types are left to the implementer
-  @param _resourceId the id of the resource to return
-  */
-  function getResource(bytes8 _resourceId) external view returns (Resource memory);
-
-}
 ```
 
 ## Rationale
@@ -321,11 +310,11 @@ custom: A bytes object that may be used to store generic data
 #Multi-Resource Storage Schema
 Resources are stored on a token as an array of bytes8 identifiers.
 
-In order to reduce redundant on-chain string storage, multi resource tokens store resources by reference via a secondary storage contract. A resource entry on the storage contract is stored via a bytes8 mapping to resource data. A bytes8 identifier is then computed from the hash of (address storageContractAddress, bytes8 resourceId). Both address and bytes8 identifier are then stored on the local contract as a bytes8 mapping to this reference.
+In order to reduce redundant on-chain string storage, multi resource tokens store resources by reference via a inner storage. A resource entry on the storage is stored via a bytes8 mapping to resource data.
 
 A resource array is an array of these bytes8 references.
 
-Resources are stored on a separate contract and referred to by reference for two reasons: generic reference storage on the multiresource token contract for variable resource struct types, and to reduce redundant storage on the multiresource token contract. With this structure, a generic resource can be added once on the storage contract, and a reference to it can be added to it once on the token contract. Implementers can then use string concatenation to procedurally generate a link to a content-addressed archive based on the base SRC in the resource and the token ID. Storing the resource on a new token will only take 16 bytes of storage in the resource array per token for repeated / tokenID dependent resources.
+With this structure, a generic resource can be added once on the storage, and a reference to it can be added to it once on the token contract. Implementers can then use string concatenation to procedurally generate a link to a content-addressed archive based on the base SRC in the resource and the token ID. Storing the resource on a new token will only take 16 bytes of storage in the resource array per token for repeated / tokenID dependent resources.
 
 This structure ensures that for tokens whose source differs only via their tokenId, URIs may still be derived programmatically through concatenation.
 

@@ -468,6 +468,18 @@ contract MultiResourceToken is Context, IMultiResource {
         return _resourceOverwrites[tokenId][resourceId];
     }
 
+    function getResource(
+        bytes8 resourceId
+    ) public view virtual returns (Resource memory)
+    {
+        Resource memory resource = _resources[resourceId];
+        require(
+            resource.id != bytes8(0),
+            "RMRK: No resource matching Id"
+        );
+        return resource;
+    }
+
     function tokenURI(
         uint256 tokenId
     ) public view virtual returns (string memory) {
@@ -678,18 +690,6 @@ contract MultiResourceToken is Context, IMultiResource {
         bytes16 customResourceId
     ) public view virtual returns (bytes memory) {
         return _customResourceData[resourceId][customResourceId];
-    }
-
-    function getResource(
-        bytes8 resourceId
-    ) public view virtual returns (Resource memory)
-    {
-        Resource memory resource = _resources[resourceId];
-        require(
-            resource.id != bytes8(0),
-            "RMRK: No resource matching Id"
-        );
-        return resource;
     }
 
     function isTokenEnumeratedResource(

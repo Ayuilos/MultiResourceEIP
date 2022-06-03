@@ -39,7 +39,7 @@ interface IMultiResource is IERC721 {
 
     function rejectAllResources(uint256 tokenId) external;
 
-    function setPriority(uint256 tokenId, uint16[] memory ids) external;
+    function setPriority(uint256 tokenId, uint16[] memory priorities) external;
 
     function getActiveResources(
         uint256 tokenId
@@ -58,7 +58,7 @@ interface IMultiResource is IERC721 {
         bytes8 resourceId
     ) external view returns(bytes8);
 
-    function getResource(bytes8 id) external view returns (Resource memory);
+    function getResource(bytes8 resourceId) external view returns (Resource memory);
 
     function getCustomResourceData(
         bytes8 resourceId,
