@@ -506,7 +506,7 @@ contract MultiResourceToken is Context, IMultiResource {
                 customResourceId
             );
             if (
-                keccak256(actualCustomResourceValue) == 
+                keccak256(actualCustomResourceValue) ==
                 keccak256(customResourceValue)
             ) {
                 return _tokenURIAtIndex(tokenId, index);
@@ -529,7 +529,7 @@ contract MultiResourceToken is Context, IMultiResource {
             }
             else {
                 string memory baseURI = _activeRes.metadataURI;
-                URI = bytes(baseURI).length > 0 ? 
+                URI = bytes(baseURI).length > 0 ?
                     string(abi.encodePacked(baseURI, tokenId.toString())) : "";
             }
             return URI;
@@ -572,20 +572,23 @@ contract MultiResourceToken is Context, IMultiResource {
         bytes memory data
     ) internal {
         _customResourceData[resourceId][customResourceId] = data;
+        emit ResourceCustomDataSet(resourceId, customResourceId);
     }
 
-    function _addCustomDataRefToResource(
-        bytes8 resourceId, 
+    function _addCustomDataToResource(
+        bytes8 resourceId,
         bytes16 customResourceId
     ) internal {
         _resources[resourceId].custom.push(customResourceId);
+        emit CustomDataAddedToResource(resourceId, customResourceId);
     }
 
-    function _removeCustomDataRefToResource(
+    function _removeCustomDataFromResource(
         bytes8 resourceId,
         uint256 index
     ) internal {
         _resources[resourceId].custom.removeItemByIndex(index);
+        emit CustomDataRemovedFromResource(resourceId, customResourceId);
     }
 
     function _addResourceToToken(
