@@ -587,6 +587,7 @@ contract MultiResourceToken is Context, IMultiResource {
         bytes8 resourceId,
         uint256 index
     ) internal {
+        bytes16 customResourceId = _resources[resourceId].custom[index];
         _resources[resourceId].custom.removeItemByIndex(index);
         emit CustomDataRemovedFromResource(resourceId, customResourceId);
     }

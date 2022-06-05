@@ -68,18 +68,18 @@ contract MultiResourceTokenMock is MultiResourceToken {
         _setCustomResourceData(resourceId, customResourceId, data);
     }
 
-    function addCustomDataRefToResource(
+    function addCustomDataToResource(
         bytes8 resourceId,
         bytes16 customResourceId
     ) external onlyIssuer {
-        _addCustomDataRefToResource(resourceId, customResourceId);
+        _addCustomDataToResource(resourceId, customResourceId);
     }
 
-    function removeCustomDataRefToResource(
+    function removeCustomDataFromResource(
         bytes8 resourceId,
         uint256 index
     ) external onlyIssuer {
-        _removeCustomDataRefToResource(resourceId, index);
+        _removeCustomDataFromResource(resourceId, index);
     }
 
     function _setIssuer(address issuer) private {
