@@ -98,6 +98,24 @@ describe('MultiResource', async () => {
         token.addResourceEntry(id, srcDefault, thumbDefault, metaURIDefault, customDefault),
       ).to.be.revertedWith('RMRK: Write to zero');
     });
+
+    it('can add and remove custom data for resource', async function () {
+      const resId = ethers.utils.hexZeroPad('0x0001', 8);
+      const customDataTypeKey = ethers.utils.hexZeroPad('0x0003', 16);
+      await token.addResourceEntry(resId, srcDefault, thumbDefault, metaURIDefault, customDefault);
+
+      await expect(token.addCustomDataToResource(resId, customDataTypeKey))
+        .to.emit(token, 'CustomDataAddedToResource')
+        .withArgs(resId, customDataTypeKey);
+      let resource = await token.getResource(resId);
+      expect(resource.custom).to.eql([customDataTypeKey]);
+
+      await expect(token.removeCustomDataFromResource(resId, 0))
+        .to.emit(token, 'CustomDataRemovedFromResource')
+        .withArgs(resId, customDataTypeKey);
+      resource = await token.getResource(resId);
+      expect(resource.custom).to.eql([]);
+    });
   });
 
   describe('Adding resources', async function () {
@@ -488,7 +506,9 @@ describe('MultiResource', async () => {
         customDataTypeKey,
         customDataAreaKey,
       ]);
-      await token.setCustomResourceData(resId, customDataWidthKey, customDataWidthValue);
+      await expect(token.setCustomResourceData(resId, customDataWidthKey, customDataWidthValue))
+        .to.emit(token, 'ResourceCustomDataSet')
+        .withArgs(resId, customDataWidthKey);
       await token.setCustomResourceData(resId, customDataHeightKey, customDataHeightValue);
       await token.setCustomResourceData(resId, customDataTypeKey, customDataTypeValueA);
       await token.setCustomResourceData(resId2, customDataAreaKey, customDataAreaValue);

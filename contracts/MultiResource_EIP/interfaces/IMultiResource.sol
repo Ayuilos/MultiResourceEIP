@@ -33,9 +33,15 @@ interface IMultiResource is IERC721 {
 
     event ResourceStorageSet(bytes8 id);
 
-    event CustomDataAddedToResource(bytes8 resourceId, bytes16 customResourceId);
+    event CustomDataAddedToResource(
+        bytes8 resourceId,
+        bytes16 customResourceId
+    );
 
-    event CustomDataRemovedFromResource(bytes8 resourceId, bytes16 customResourceId);
+    event CustomDataRemovedFromResource(
+        bytes8 resourceId,
+        bytes16 customResourceId
+    );
 
     event ResourceCustomDataSet(bytes8 resourceId, bytes16 customResourceId);
 
