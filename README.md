@@ -101,6 +101,32 @@ interface IERCMultiResource /* is ERC721 */ {
     event ResourceOverwritten(uint256 indexed tokenId, bytes8 overwritten);
 
     /*
+    @dev This emits whenever a resource is set.
+    */
+    event ResourceSet(bytes8 id);
+
+    /*
+    @dev This emits whenever resource custom data is added to the list of custom on a resource.
+    */
+    event ResourceCustomDataAdded(
+        bytes8 resourceId,
+        bytes16 customResourceId
+    );
+
+    /*
+    @dev This emits whenever resource custom data is removed from the list of custom on a resource.
+    */
+    event ResourceCustomDataRemoved(
+        bytes8 resourceId,
+        bytes16 customResourceId
+    );
+
+    /*
+    @dev This emits whenever resource custom data is set.
+    */
+    event ResourceCustomDataSet(bytes8 resourceId, bytes16 customResourceId);
+
+    /*
     @notice Accepts the resource from pending.
     @dev Moves the resource from the pending array to the accepted array. Array
       order is not preserved.
@@ -334,7 +360,7 @@ The Multi Resource token standard has been based on existing ERC721 implementati
 
 ## Reference implementation
 
-A reference implementation by Neon Crisis developer: CicadaNCR and Snake Soldiers developer: Steven Pineda is available in the suite: https://github.com/rmrk-team/MultiResourceEIP/blob/master/contracts/MultiResource_EIP/MultiResourceToken.sol
+A reference implementation by Neon Crisis developer: CicadaNCR and Snake Soldiers developer: Steven Pineda is available in the suite: https://github.com/rmrk-team/MultiResourceEIP/blob/master/contracts/MultiResource_EIP/MultiResourceToken.sol There is also a full implementation with only issuer protection for admin settings https://github.com/rmrk-team/MultiResourceEIP/blob/master/contracts/MultiResource_EIP/mocks/MultiResourceTokenMock.sol
 
 ## Security Considerations
 

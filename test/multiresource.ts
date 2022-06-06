@@ -49,7 +49,7 @@ describe('MultiResource', async () => {
       await expect(
         token.addResourceEntry(id, srcDefault, thumbDefault, metaURIDefault, customDefault),
       )
-        .to.emit(token, 'ResourceStorageSet')
+        .to.emit(token, 'ResourceSet')
         .withArgs(id);
     });
 
@@ -105,13 +105,13 @@ describe('MultiResource', async () => {
       await token.addResourceEntry(resId, srcDefault, thumbDefault, metaURIDefault, customDefault);
 
       await expect(token.addCustomDataToResource(resId, customDataTypeKey))
-        .to.emit(token, 'CustomDataAddedToResource')
+        .to.emit(token, 'ResourceCustomDataAdded')
         .withArgs(resId, customDataTypeKey);
       let resource = await token.getResource(resId);
       expect(resource.custom).to.eql([customDataTypeKey]);
 
       await expect(token.removeCustomDataFromResource(resId, 0))
-        .to.emit(token, 'CustomDataRemovedFromResource')
+        .to.emit(token, 'ResourceCustomDataRemoved')
         .withArgs(resId, customDataTypeKey);
       resource = await token.getResource(resId);
       expect(resource.custom).to.eql([]);

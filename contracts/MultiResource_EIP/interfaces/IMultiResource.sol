@@ -15,6 +15,8 @@ interface IMultiResource is IERC721 {
         bytes16[] custom;
     }
 
+    event ResourceSet(bytes8 resourceId);
+
     event ResourceAddedToToken(uint256 indexed tokenId, bytes8 resourceId);
 
     event ResourceAccepted(uint256 indexed tokenId, bytes8 resourceId);
@@ -31,19 +33,17 @@ interface IMultiResource is IERC721 {
 
     event ResourceOverwritten(uint256 indexed tokenId, bytes8 overwritten);
 
-    event ResourceStorageSet(bytes8 id);
-
-    event CustomDataAddedToResource(
-        bytes8 resourceId,
-        bytes16 customResourceId
-    );
-
-    event CustomDataRemovedFromResource(
-        bytes8 resourceId,
-        bytes16 customResourceId
-    );
-
     event ResourceCustomDataSet(bytes8 resourceId, bytes16 customResourceId);
+
+    event ResourceCustomDataAdded(
+        bytes8 resourceId,
+        bytes16 customResourceId
+    );
+
+    event ResourceCustomDataRemoved(
+        bytes8 resourceId,
+        bytes16 customResourceId
+    );
 
     function acceptResource(uint256 tokenId, uint256 index) external;
 

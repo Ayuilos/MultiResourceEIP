@@ -563,7 +563,7 @@ contract MultiResourceToken is Context, IMultiResource {
         _resources[id] = resource;
         _allResources.push(id);
 
-        emit ResourceStorageSet(id);
+        emit ResourceSet(id);
     }
 
     function _setCustomResourceData(
@@ -580,7 +580,7 @@ contract MultiResourceToken is Context, IMultiResource {
         bytes16 customResourceId
     ) internal {
         _resources[resourceId].custom.push(customResourceId);
-        emit CustomDataAddedToResource(resourceId, customResourceId);
+        emit ResourceCustomDataAdded(resourceId, customResourceId);
     }
 
     function _removeCustomDataFromResource(
@@ -589,7 +589,7 @@ contract MultiResourceToken is Context, IMultiResource {
     ) internal {
         bytes16 customResourceId = _resources[resourceId].custom[index];
         _resources[resourceId].custom.removeItemByIndex(index);
-        emit CustomDataRemovedFromResource(resourceId, customResourceId);
+        emit ResourceCustomDataRemoved(resourceId, customResourceId);
     }
 
     function _addResourceToToken(
