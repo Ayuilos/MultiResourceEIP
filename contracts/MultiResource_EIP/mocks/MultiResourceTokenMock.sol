@@ -52,12 +52,10 @@ contract MultiResourceTokenMock is MultiResourceToken {
 
     function addResourceEntry(
         bytes8 id,
-        string memory src,
-        string memory thumb,
         string memory metadataURI,
         bytes16[] memory custom
     ) external onlyIssuer {
-        _addResourceEntry(id, src, thumb, metadataURI, custom);
+        _addResourceEntry(id, metadataURI, custom);
     }
 
     function setCustomResourceData(

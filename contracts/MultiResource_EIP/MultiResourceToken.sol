@@ -543,8 +543,6 @@ contract MultiResourceToken is Context, IMultiResource {
 
     function _addResourceEntry(
         bytes8 id,
-        string memory src,
-        string memory thumb,
         string memory metadataURI,
         bytes16[] memory custom
     ) internal {
@@ -555,8 +553,6 @@ contract MultiResourceToken is Context, IMultiResource {
         );
         Resource memory resource = Resource({
             id: id,
-            src: src,
-            thumb: thumb,
             metadataURI: metadataURI,
             custom: custom
         });
