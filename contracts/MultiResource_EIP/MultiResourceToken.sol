@@ -380,7 +380,7 @@ contract MultiResourceToken is Context, IMultiResource {
             "MultiResource: not owner"
         );
         bytes8 resourceId = _pendingResources[tokenId][index];
-        _pendingResources[tokenId].removeItemByIndex(0);
+        _pendingResources[tokenId].removeItemByIndex(index);
 
         bytes8 overwrite = _resourceOverwrites[tokenId][resourceId];
         if (overwrite != bytes8(0)) {
