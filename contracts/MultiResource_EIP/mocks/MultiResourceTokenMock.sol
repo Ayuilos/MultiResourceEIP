@@ -24,7 +24,7 @@ contract MultiResourceTokenMock is MultiResourceToken {
     }
 
     function setTokenEnumeratedResource(
-        bytes8 resourceId,
+        uint32 resourceId,
         bool state
     ) external onlyIssuer {
         _setTokenEnumeratedResource(resourceId, state);
@@ -44,37 +44,37 @@ contract MultiResourceTokenMock is MultiResourceToken {
 
     function addResourceToToken(
         uint256 tokenId,
-        bytes8 resourceId,
-        bytes8 overwrites
+        uint32 resourceId,
+        uint32 overwrites
     ) external onlyIssuer {
         _addResourceToToken(tokenId, resourceId, overwrites);
     }
 
     function addResourceEntry(
-        bytes8 id,
+        uint32 id,
         string memory metadataURI,
-        bytes16[] memory custom
+        uint64[] memory custom
     ) external onlyIssuer {
         _addResourceEntry(id, metadataURI, custom);
     }
 
     function setCustomResourceData(
-        bytes8 resourceId,
-        bytes16 customResourceId,
+        uint32 resourceId,
+        uint64 customResourceId,
         bytes memory data
     ) external onlyIssuer {
         _setCustomResourceData(resourceId, customResourceId, data);
     }
 
     function addCustomDataToResource(
-        bytes8 resourceId,
-        bytes16 customResourceId
+        uint32 resourceId,
+        uint64 customResourceId
     ) external onlyIssuer {
         _addCustomDataToResource(resourceId, customResourceId);
     }
 
     function removeCustomDataFromResource(
-        bytes8 resourceId,
+        uint32 resourceId,
         uint256 index
     ) external onlyIssuer {
         _removeCustomDataFromResource(resourceId, index);

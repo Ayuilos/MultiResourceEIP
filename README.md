@@ -63,27 +63,27 @@ pragma solidity ^0.8.9;
 interface IERCMultiResource /* is ERC721 */ {
 
     struct Resource {
-      bytes8 id;
+      uint32 id;
       string src;
       string thumb;
       string metadataURI;
-      bytes16[] custom;
+      uint64[] custom;
     }
 
     /*
     @dev This emits whenever a pending resource has been added to a token's pending resources.
     */
-    event ResourceAddedToToken(uint256 indexed tokenId, bytes8 resourceId);
+    event ResourceAddedToToken(uint256 indexed tokenId, uint32 resourceId);
 
     /*
     @dev This emits whenever a resource has accepted by the token owner.
     */
-    event ResourceAccepted(uint256 indexed tokenId, bytes8 resourceId);
+    event ResourceAccepted(uint256 indexed tokenId, uint32 resourceId);
 
     /*
     @dev This emits whenever a pending resource has been dropped from the pending resources array.
     */
-    event ResourceRejected(uint256 indexed tokenId, bytes8 resourceId);
+    event ResourceRejected(uint256 indexed tokenId, uint32 resourceId);
 
     /*
     @dev This emits whenever a resource's priority has been set.
@@ -93,38 +93,38 @@ interface IERCMultiResource /* is ERC721 */ {
     /*
     @dev This emits whenever a pending resource also proposes to overwrite an existing resource.
     */
-    event ResourceOverwriteProposed(uint256 indexed tokenId, bytes8 resourceId, bytes8 overwrites);
+    event ResourceOverwriteProposed(uint256 indexed tokenId, uint32 resourceId, uint32 overwrites);
 
     /*
     @dev This emits whenever a pending resource overwrites an existing resource.
     */
-    event ResourceOverwritten(uint256 indexed tokenId, bytes8 overwritten);
+    event ResourceOverwritten(uint256 indexed tokenId, uint32 overwritten);
 
     /*
     @dev This emits whenever a resource is set.
     */
-    event ResourceSet(bytes8 id);
+    event ResourceSet(uint32 id);
 
     /*
     @dev This emits whenever resource custom data is added to the list of custom on a resource.
     */
     event ResourceCustomDataAdded(
-        bytes8 resourceId,
-        bytes16 customResourceId
+        uint32 resourceId,
+        uint64 customResourceId
     );
 
     /*
     @dev This emits whenever resource custom data is removed from the list of custom on a resource.
     */
     event ResourceCustomDataRemoved(
-        bytes8 resourceId,
-        bytes16 customResourceId
+        uint32 resourceId,
+        uint64 customResourceId
     );
 
     /*
     @dev This emits whenever resource custom data is set.
     */
-    event ResourceCustomDataSet(bytes8 resourceId, bytes16 customResourceId);
+    event ResourceCustomDataSet(uint32 resourceId, uint64 customResourceId);
 
     /*
     @notice Accepts the resource from pending.
@@ -167,22 +167,22 @@ interface IERCMultiResource /* is ERC721 */ {
     /*
     @notice Returns an array of byte8 identifiers from the active resources
       array for resource lookup.
-    @dev Each bytes8 resource corresponds to the id of the relevant resource
+    @dev Each uint32 resource corresponds to the id of the relevant resource
     on the storage. See addResourceEntry dev comment for rationale.
     @param tokenId the token of the active resource set to get
-    @return an array of bytes8 resource ids corresponding to active resources
+    @return an array of uint32 resource ids corresponding to active resources
     */
-    function getActiveResources(uint256 tokenId) external view returns(bytes8[] memory);
+    function getActiveResources(uint256 tokenId) external view returns(uint32[] memory);
 
     /*
     @notice Returns an array of byte8 identifiers from the pending resources
       array for resource lookup.
-    @dev Each bytes8 resource corresponds to the id of the relevant resource
+    @dev Each uint32 resource corresponds to the id of the relevant resource
       on the storage. See addResourceEntry dev comment for rationale.
     @param tokenId the token of the pending resource set to get
-    @return an array of bytes8 resource ids corresponding to pending resources
+    @return an array of uint32 resource ids corresponding to pending resources
     */
-    function getPendingResources(uint256 tokenId) external view returns(bytes8[] memory);
+    function getPendingResources(uint256 tokenId) external view returns(uint32[] memory);
 
     /*
     @notice Returns an array of uint16 resource priorities
@@ -194,20 +194,20 @@ interface IERCMultiResource /* is ERC721 */ {
     function getActiveResourcePriorities(uint256 tokenId) external view returns(uint16[] memory);
 
     /*
-    @notice Returns the bytes8 resource ID a given token will be overwritten if
+    @notice Returns the uint32 resource ID a given token will be overwritten if
       overwrite is enabled for a pending resource.
     @param tokenId the token of the pending overwrite
     @param resId the resource ID which may overwrite another
-    @return a bytes8 corresponding to the resource ID of the resource that will be overwritten
+    @return a uint32 corresponding to the resource ID of the resource that will be overwritten
     */
-    function getResourceOverwrites(uint256 tokenId, bytes8 resId) external view returns(bytes8);
+    function getResourceOverwrites(uint256 tokenId, uint32 resId) external view returns(uint32);
 
     /*
     @notice Returns the resource at the id.
     @dev Exact struct data types are left to the implementer
     @param resourceId the id of the resource to return
     */
-    function getResource(bytes8 resourceId) external view returns (Resource memory);
+    function getResource(uint32 resourceId) external view returns (Resource memory);
 
     /*
     @notice Returns the src field of the first active resource on the token,
@@ -327,18 +327,18 @@ interface ERC165 {
 #Resource fields
 The MultiResource token standard supports five fields:
 
-id: a bytes8 resource identifier
+id: a uint32 resource identifier
 src: a string pointing to the media associated with the resource
 thumb: a string pointing to thumbnail media associated with the resource
 metadataURI: A string pointing to a metadata file associated with the resource
 custom: A bytes object that may be used to store generic data
 
 #Multi-Resource Storage Schema
-Resources are stored on a token as an array of bytes8 identifiers.
+Resources are stored on a token as an array of uint32 identifiers.
 
-In order to reduce redundant on-chain string storage, multi resource tokens store resources by reference via a inner storage. A resource entry on the storage is stored via a bytes8 mapping to resource data.
+In order to reduce redundant on-chain string storage, multi resource tokens store resources by reference via a inner storage. A resource entry on the storage is stored via a uint32 mapping to resource data.
 
-A resource array is an array of these bytes8 references.
+A resource array is an array of these uint32 references.
 
 With this structure, a generic resource can be added once on the storage, and a reference to it can be added to it once on the token contract. Implementers can then use string concatenation to procedurally generate a link to a content-addressed archive based on the base SRC in the resource and the token ID. Storing the resource on a new token will only take 16 bytes of storage in the resource array per token for repeated / tokenID dependent resources.
 

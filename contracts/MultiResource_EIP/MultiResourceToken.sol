@@ -11,8 +11,8 @@ import "./utils/Context.sol";
 contract MultiResourceToken is Context, IMultiResource {
 
     using MultiResourceLib for uint256;
-    using MultiResourceLib for bytes8[];
-    using MultiResourceLib for bytes16[];
+    using MultiResourceLib for uint32[];
+    using MultiResourceLib for uint64[];
     using Address for address;
     using Strings for uint256;
 
@@ -34,32 +34,32 @@ contract MultiResourceToken is Context, IMultiResource {
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
-    //mapping of bytes8 Ids to resource object
-    mapping(bytes8 => Resource) private _resources;
+    //mapping of uint32 Ids to resource object
+    mapping(uint32 => Resource) private _resources;
 
     //mapping tokenId to current resource to replacing resource
-    mapping(uint256 => mapping(bytes8 => bytes8)) private _resourceOverwrites;
+    mapping(uint256 => mapping(uint32 => uint32)) private _resourceOverwrites;
 
     //mapping of tokenId to all resources
-    mapping(uint256 => bytes8[]) private _activeResources;
+    mapping(uint256 => uint32[]) private _activeResources;
 
     //mapping of tokenId to an array of resource priorities
     mapping(uint256 => uint16[]) private _activeResourcePriorities;
 
     //Double mapping of tokenId to active resources
-    mapping(uint256 => mapping(bytes8 => bool)) private _tokenResources;
+    mapping(uint256 => mapping(uint32 => bool)) private _tokenResources;
 
     //mapping of tokenId to all resources by priority
-    mapping(uint256 => bytes8[]) private _pendingResources;
+    mapping(uint256 => uint32[]) private _pendingResources;
 
-    //Mapping of bytes8 resource ID to tokenEnumeratedResource for tokenURI
-    mapping(bytes8 => bool) private _tokenEnumeratedResource;
+    //Mapping of uint32 resource ID to tokenEnumeratedResource for tokenURI
+    mapping(uint32 => bool) private _tokenEnumeratedResource;
 
-    //Mapping of bytes16 custom field to bytes data
-    mapping(bytes8 => mapping (bytes16 => bytes)) private _customResourceData;
+    //Mapping of uint64 custom field to bytes data
+    mapping(uint32 => mapping (uint64 => bytes)) private _customResourceData;
 
     //List of all resources
-    bytes8[] private _allResources;
+    uint32[] private _allResources;
 
     //fallback URI
     string private _fallbackURI;
@@ -74,7 +74,7 @@ contract MultiResourceToken is Context, IMultiResource {
     ////////////////////////////////////////
 
 
-    function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view returns (bool) {
         return 
             interfaceId == type(IMultiResource).interfaceId ||
             interfaceId == type(IERC721).interfaceId ||
@@ -382,11 +382,11 @@ contract MultiResourceToken is Context, IMultiResource {
             _msgSender() == ownerOf(tokenId),
             "MultiResource: not owner"
         );
-        bytes8 resourceId = _pendingResources[tokenId][index];
+        uint32 resourceId = _pendingResources[tokenId][index];
         _pendingResources[tokenId].removeItemByIndex(index);
 
-        bytes8 overwrite = _resourceOverwrites[tokenId][resourceId];
-        if (overwrite != bytes8(0)) {
+        uint32 overwrite = _resourceOverwrites[tokenId][resourceId];
+        if (overwrite != uint32(0)) {
             // We could check here that the resource to overwrite actually exists but it is probably harmless.
             _activeResources[tokenId].removeItemByValue(overwrite);
             emit ResourceOverwritten(tokenId, overwrite);
@@ -412,7 +412,7 @@ contract MultiResourceToken is Context, IMultiResource {
             "MultiResource: not owner"
         );
 
-        bytes8 resourceId = _pendingResources[tokenId][index];
+        uint32 resourceId = _pendingResources[tokenId][index];
         _pendingResources[tokenId].removeItemByValue(resourceId);
         _tokenResources[tokenId][resourceId] = false;
 
@@ -425,7 +425,7 @@ contract MultiResourceToken is Context, IMultiResource {
             "MultiResource: not owner"
         );
         delete(_pendingResources[tokenId]);
-        emit ResourceRejected(tokenId, bytes8(0));
+        emit ResourceRejected(tokenId, uint32(0));
     }
 
     function setPriority(
@@ -448,13 +448,13 @@ contract MultiResourceToken is Context, IMultiResource {
 
     function getActiveResources(
         uint256 tokenId
-    ) public view virtual returns(bytes8[] memory) {
+    ) public view virtual returns(uint32[] memory) {
         return _activeResources[tokenId];
     }
 
     function getPendingResources(
         uint256 tokenId
-    ) public view virtual returns(bytes8[] memory) {
+    ) public view virtual returns(uint32[] memory) {
         return _pendingResources[tokenId];
     }
 
@@ -466,18 +466,18 @@ contract MultiResourceToken is Context, IMultiResource {
 
     function getResourceOverwrites(
         uint256 tokenId,
-        bytes8 resourceId
-    ) public view virtual returns(bytes8) {
+        uint32 resourceId
+    ) public view virtual returns(uint32) {
         return _resourceOverwrites[tokenId][resourceId];
     }
 
     function getResource(
-        bytes8 resourceId
+        uint32 resourceId
     ) public view virtual returns (Resource memory)
     {
         Resource memory resource = _resources[resourceId];
         require(
-            resource.id != bytes8(0),
+            resource.id != uint32(0),
             "RMRK: No resource matching Id"
         );
         return resource;
@@ -498,10 +498,10 @@ contract MultiResourceToken is Context, IMultiResource {
 
     function tokenURIForCustomValue(
         uint256 tokenId,
-        bytes16 customResourceId,
+        uint64 customResourceId,
         bytes memory customResourceValue
     ) public view virtual returns (string memory) {
-        bytes8[] memory activeResources = _activeResources[tokenId];
+        uint32[] memory activeResources = _activeResources[tokenId];
         uint256 len = _activeResources[tokenId].length;
         for (uint index; index<len;) {
             bytes memory actualCustomResourceValue = getCustomResourceData(
@@ -524,7 +524,7 @@ contract MultiResourceToken is Context, IMultiResource {
         uint256 index
     ) internal view returns (string memory) {
         if (_activeResources[tokenId].length > index)  {
-            bytes8 activeResId = _activeResources[tokenId][index];
+            uint32 activeResId = _activeResources[tokenId][index];
             string memory URI;
             Resource memory _activeRes = getResource(activeResId);
             if (!_tokenEnumeratedResource[activeResId]) {
@@ -545,13 +545,13 @@ contract MultiResourceToken is Context, IMultiResource {
     // To be implemented with custom guards
 
     function _addResourceEntry(
-        bytes8 id,
+        uint32 id,
         string memory metadataURI,
-        bytes16[] memory custom
+        uint64[] memory custom
     ) internal {
-        require(id != bytes8(0), "RMRK: Write to zero");
+        require(id != uint32(0), "RMRK: Write to zero");
         require(
-            _resources[id].id == bytes8(0),
+            _resources[id].id == uint32(0),
             "RMRK: resource already exists"
         );
         Resource memory resource = Resource({
@@ -566,8 +566,8 @@ contract MultiResourceToken is Context, IMultiResource {
     }
 
     function _setCustomResourceData(
-        bytes8 resourceId,
-        bytes16 customResourceId,
+        uint32 resourceId,
+        uint64 customResourceId,
         bytes memory data
     ) internal {
         _customResourceData[resourceId][customResourceId] = data;
@@ -575,26 +575,26 @@ contract MultiResourceToken is Context, IMultiResource {
     }
 
     function _addCustomDataToResource(
-        bytes8 resourceId,
-        bytes16 customResourceId
+        uint32 resourceId,
+        uint64 customResourceId
     ) internal {
         _resources[resourceId].custom.push(customResourceId);
         emit ResourceCustomDataAdded(resourceId, customResourceId);
     }
 
     function _removeCustomDataFromResource(
-        bytes8 resourceId,
+        uint32 resourceId,
         uint256 index
     ) internal {
-        bytes16 customResourceId = _resources[resourceId].custom[index];
+        uint64 customResourceId = _resources[resourceId].custom[index];
         _resources[resourceId].custom.removeItemByIndex(index);
         emit ResourceCustomDataRemoved(resourceId, customResourceId);
     }
 
     function _addResourceToToken(
         uint256 tokenId,
-        bytes8 resourceId,
-        bytes8 overwrites
+        uint32 resourceId,
+        uint32 overwrites
     ) internal {
 
         require(
@@ -608,7 +608,7 @@ contract MultiResourceToken is Context, IMultiResource {
         );
 
         require(
-            getResource(resourceId).id != bytes8(0),
+            getResource(resourceId).id != uint32(0),
             "MultiResource: Resource not found in storage"
         );
 
@@ -621,7 +621,7 @@ contract MultiResourceToken is Context, IMultiResource {
 
         _pendingResources[tokenId].push(resourceId);
 
-        if (overwrites != bytes8(0)) {
+        if (overwrites != uint32(0)) {
             _resourceOverwrites[tokenId][resourceId] = overwrites;
             emit ResourceOverwriteProposed(tokenId, resourceId, overwrites);
         }
@@ -634,7 +634,7 @@ contract MultiResourceToken is Context, IMultiResource {
     }
 
     function _setTokenEnumeratedResource(
-        bytes8 resourceId,
+        uint32 resourceId,
         bool state
     ) internal {
         _tokenEnumeratedResource[resourceId] = state;
@@ -646,7 +646,7 @@ contract MultiResourceToken is Context, IMultiResource {
         uint256 tokenId,
         uint256 index
     ) public view virtual returns(Resource memory) {
-        bytes8 resourceId = getActiveResources(tokenId)[index];
+        uint32 resourceId = getActiveResources(tokenId)[index];
         return getResource(resourceId);
     }
 
@@ -654,14 +654,14 @@ contract MultiResourceToken is Context, IMultiResource {
         uint256 tokenId,
         uint256 index
     ) public view virtual returns(Resource memory) {
-        bytes8 resourceId = getPendingResources(tokenId)[index];
+        uint32 resourceId = getPendingResources(tokenId)[index];
         return getResource(resourceId);
     }
 
     function getFullResources(
         uint256 tokenId
     ) public view virtual returns (Resource[] memory) {
-        bytes8[] memory activeResources = _activeResources[tokenId];
+        uint32[] memory activeResources = _activeResources[tokenId];
         uint256 len = activeResources.length;
         Resource[] memory resources = new Resource[](len);
         for (uint i; i<len;) {
@@ -674,7 +674,7 @@ contract MultiResourceToken is Context, IMultiResource {
     function getFullPendingResources(
         uint256 tokenId
     ) public view virtual returns (Resource[] memory) {
-        bytes8[] memory pendingResources = _pendingResources[tokenId];
+        uint32[] memory pendingResources = _pendingResources[tokenId];
         uint256 len = pendingResources.length;
         Resource[] memory resources = new Resource[](len);
         for (uint i; i<len;) {
@@ -684,19 +684,19 @@ contract MultiResourceToken is Context, IMultiResource {
         return resources;
     }
 
-    function getAllResources() public view virtual returns (bytes8[] memory) {
+    function getAllResources() public view virtual returns (uint32[] memory) {
         return _allResources;
     }
 
     function getCustomResourceData(
-        bytes8 resourceId,
-        bytes16 customResourceId
+        uint32 resourceId,
+        uint64 customResourceId
     ) public view virtual returns (bytes memory) {
         return _customResourceData[resourceId][customResourceId];
     }
 
     function isTokenEnumeratedResource(
-        bytes8 resourceId
+        uint32 resourceId
     ) public view virtual returns(bool) {
         return _tokenEnumeratedResource[resourceId];
     }
