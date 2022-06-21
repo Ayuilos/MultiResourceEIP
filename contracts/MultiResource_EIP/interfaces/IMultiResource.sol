@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import "./IMultiResourceReceiver.sol";
-import "./IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 pragma solidity ^0.8.0;
 
