@@ -9,7 +9,6 @@ describe('MultiResource', async () => {
   let owner: SignerWithAddress;
   let addrs: any[];
 
-  const emptyOverwrite = ethers.utils.hexZeroPad('0x0', 8);
   const name = 'RmrkTest';
   const symbol = 'RMRKTST';
 
@@ -146,11 +145,11 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId, resId2]);
-      await expect(token.addResourceToToken(tokenId, resId, emptyOverwrite)).to.emit(
+      await expect(token.addResourceToToken(tokenId, resId, 0)).to.emit(
         token,
         'ResourceAddedToToken',
       );
-      await expect(token.addResourceToToken(tokenId, resId2, emptyOverwrite)).to.emit(
+      await expect(token.addResourceToToken(tokenId, resId2, 0)).to.emit(
         token,
         'ResourceAddedToToken',
       );
@@ -173,7 +172,7 @@ describe('MultiResource', async () => {
       const tokenId = 1;
 
       await token.mint(owner.address, tokenId);
-      await expect(token.addResourceToToken(tokenId, resId, emptyOverwrite)).to.be.revertedWith(
+      await expect(token.addResourceToToken(tokenId, resId, 0)).to.be.revertedWith(
         'RMRK: No resource matching Id',
       );
     });
@@ -183,7 +182,7 @@ describe('MultiResource', async () => {
       const tokenId = 1;
 
       await addResources([resId]);
-      await expect(token.addResourceToToken(tokenId, resId, emptyOverwrite)).to.be.revertedWith(
+      await expect(token.addResourceToToken(tokenId, resId, 0)).to.be.revertedWith(
         'ERC721: owner query for nonexistent token',
       );
     });
@@ -194,8 +193,8 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
-      await expect(token.addResourceToToken(tokenId, ethers.BigNumber.from(resId), emptyOverwrite)).to.be.revertedWith(
+      await token.addResourceToToken(tokenId, resId, 0);
+      await expect(token.addResourceToToken(tokenId, ethers.BigNumber.from(resId), 0)).to.be.revertedWith(
         'MultiResource: Resource already exists on token',
       );
     });
@@ -206,13 +205,13 @@ describe('MultiResource', async () => {
       await token.mint(owner.address, tokenId);
       for (let i = 1; i <= 128; i++) {
         await addResources([i]);
-        await token.addResourceToToken(tokenId, i, emptyOverwrite);
+        await token.addResourceToToken(tokenId, i, 0);
       }
 
       // Now it's full, next should fail
       const resId = 129;
       await addResources([resId]);
-      await expect(token.addResourceToToken(tokenId, resId, emptyOverwrite)).to.be.revertedWith(
+      await expect(token.addResourceToToken(tokenId, resId, 0)).to.be.revertedWith(
         'MultiResource: Max pending resources reached',
       );
     });
@@ -225,8 +224,8 @@ describe('MultiResource', async () => {
       await token.mint(owner.address, tokenId1);
       await token.mint(owner.address, tokenId2);
       await addResources([resId]);
-      await token.addResourceToToken(tokenId1, resId, emptyOverwrite);
-      await token.addResourceToToken(tokenId2, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId1, resId, 0);
+      await token.addResourceToToken(tokenId2, resId, 0);
     });
   });
 
@@ -237,7 +236,7 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
       await expect(token.acceptResource(tokenId, 0))
         .to.emit(token, 'ResourceAccepted')
         .withArgs(tokenId, resId);
@@ -262,8 +261,8 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId, resId2]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
-      await token.addResourceToToken(tokenId, resId2, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
+      await token.addResourceToToken(tokenId, resId2, 0);
       await expect(token.acceptResource(tokenId, 1)) // Accepting resId2
         .to.emit(token, 'ResourceAccepted')
         .withArgs(tokenId, resId2);
@@ -287,7 +286,7 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
       await token.acceptResource(tokenId, 0);
 
       await expect(token.acceptResource(tokenId, 0)).to.be.revertedWith(
@@ -301,7 +300,7 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
       await expect(token.connect(addrs[1]).acceptResource(tokenId, 0)).to.be.revertedWith(
         'MultiResource: not owner',
       );
@@ -325,7 +324,7 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId, resId2]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
       await token.acceptResource(tokenId, 0);
 
       // Add new resource to overwrite the first, and accept
@@ -370,7 +369,7 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
 
       await expect(token.rejectResource(tokenId, 0)).to.emit(token, 'ResourceRejected');
 
@@ -387,7 +386,7 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId, resId2]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
       await token.acceptResource(tokenId, 0);
 
       // Will try to overwrite but we reject it
@@ -404,8 +403,8 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId, resId2]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
-      await token.addResourceToToken(tokenId, resId2, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
+      await token.addResourceToToken(tokenId, resId2, 0);
 
       await expect(token.rejectAllResources(tokenId)).to.emit(token, 'ResourceRejected');
 
@@ -422,7 +421,7 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId, resId2]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
       await token.acceptResource(tokenId, 0);
 
       // Will try to overwrite but we reject all
@@ -457,7 +456,7 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
       await token.rejectResource(tokenId, 0);
 
       await expect(token.rejectResource(tokenId, 0)).to.be.revertedWith(
@@ -471,7 +470,7 @@ describe('MultiResource', async () => {
 
       await token.mint(owner.address, tokenId);
       await addResources([resId]);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
 
       await expect(token.connect(addrs[1]).rejectResource(tokenId, 0)).to.be.revertedWith(
         'MultiResource: not owner',
@@ -567,8 +566,8 @@ describe('MultiResource', async () => {
       await token.mint(owner.address, tokenId);
       await token.addResourceEntry(resId, 'UriA', customDefault);
       await token.addResourceEntry(resId2, 'UriB', customDefault);
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
-      await token.addResourceToToken(tokenId, resId2, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
+      await token.addResourceToToken(tokenId, resId2, 0);
       await token.acceptResource(tokenId, 0);
       await token.acceptResource(tokenId, 0);
 
@@ -606,8 +605,8 @@ describe('MultiResource', async () => {
       await token.setCustomResourceData(resId2, customDataAreaKey, customDataAreaValue);
       await token.setCustomResourceData(resId2, customDataTypeKey, customDataTypeValueB);
 
-      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
-      await token.addResourceToToken(tokenId, resId2, emptyOverwrite);
+      await token.addResourceToToken(tokenId, resId, 0);
+      await token.addResourceToToken(tokenId, resId2, 0);
       await token.acceptResource(tokenId, 0);
       await token.acceptResource(tokenId, 0);
 
@@ -636,8 +635,8 @@ describe('MultiResource', async () => {
     await token.setCustomResourceData(resId, customDataTypeKey, customDataTypeValueA);
     await token.setCustomResourceData(resId2, customDataTypeKey, customDataTypeValueB);
 
-    await token.addResourceToToken(tokenId, resId, emptyOverwrite);
-    await token.addResourceToToken(tokenId, resId2, emptyOverwrite);
+    await token.addResourceToToken(tokenId, resId, 0);
+    await token.addResourceToToken(tokenId, resId2, 0);
     await token.acceptResource(tokenId, 0);
     await token.acceptResource(tokenId, 0);
 
@@ -664,8 +663,8 @@ describe('MultiResource', async () => {
     const resId2 = 2;
     await token.mint(owner.address, tokenId);
     await addResources([resId, resId2]);
-    await token.addResourceToToken(tokenId, resId, emptyOverwrite);
-    await token.addResourceToToken(tokenId, resId2, emptyOverwrite);
+    await token.addResourceToToken(tokenId, resId, 0);
+    await token.addResourceToToken(tokenId, resId2, 0);
     await token.acceptResource(tokenId, 0);
     await token.acceptResource(tokenId, 0);
   }
