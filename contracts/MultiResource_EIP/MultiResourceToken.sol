@@ -74,7 +74,7 @@ contract MultiResourceToken is Context, IMultiResource {
     ////////////////////////////////////////
 
 
-    function supportsInterface(bytes4 interfaceId) public view returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
         return 
             interfaceId == type(IMultiResource).interfaceId ||
             interfaceId == type(IERC721).interfaceId ||

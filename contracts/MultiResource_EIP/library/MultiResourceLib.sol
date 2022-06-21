@@ -31,37 +31,6 @@ library MultiResourceLib {
     array.pop();
   }
 
-  // indexOf, indexOfFromEnd, and contains adapted from Cryptofin-Solidity arrayUtils
-  function indexOf(uint32[] memory A, uint32 a) internal pure returns (uint256, bool) {
-    uint256 length = A.length;
-    for (uint256 i = 0; i < length; u_inc(i)) {
-      if (A[i] == a) {
-        return (i, true);
-      }
-    }
-    return (0, false);
-  }
-
-  function indexOfFromEnd(uint32[] memory A, uint32 a) internal pure returns (uint256, bool) {
-    uint256 length = A.length;
-    for (uint256 i = length; i > 0; i--) {
-      if (A[i - 1] == a) {
-        return (i, true);
-      }
-    }
-    return (0, false);
-  }
-
-  function contains(uint32[] memory A, uint32 a) internal pure returns (bool) {
-    (, bool isIn) = indexOf(A, a);
-    return isIn;
-  }
-
-  function containsFromEnd(uint32[] memory A, uint32 a) internal pure returns (bool) {
-    (, bool isIn) = indexOfFromEnd(A, a);
-    return isIn;
-  }
-
   // Gas saving iterator
   function u_inc(uint i) internal pure returns (uint r) {
     unchecked {
