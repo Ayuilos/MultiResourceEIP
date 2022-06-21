@@ -157,12 +157,12 @@ describe('MultiResource', async () => {
 
       const pending = await token.getFullPendingResources(tokenId);
       expect(pending).to.be.eql([
-        [resId, metaURIDefault, customDefault],
-        [resId2, metaURIDefault, customDefault],
+        [ethers.BigNumber.from(resId), metaURIDefault, customDefault],
+        [ethers.BigNumber.from(resId2), metaURIDefault, customDefault],
       ]);
 
       expect(await token.getPendingResObjectByIndex(tokenId, 0)).to.eql([
-        resId,
+        ethers.BigNumber.from(resId),
         metaURIDefault,
         customDefault,
       ]);
@@ -195,7 +195,7 @@ describe('MultiResource', async () => {
       await token.mint(owner.address, tokenId);
       await addResources([resId]);
       await token.addResourceToToken(tokenId, resId, emptyOverwrite);
-      await expect(token.addResourceToToken(tokenId, resId, emptyOverwrite)).to.be.revertedWith(
+      await expect(token.addResourceToToken(tokenId, ethers.BigNumber.from(resId), emptyOverwrite)).to.be.revertedWith(
         'MultiResource: Resource already exists on token',
       );
     });
@@ -246,10 +246,10 @@ describe('MultiResource', async () => {
       expect(pending).to.be.eql([]);
 
       const accepted = await token.getFullResources(tokenId);
-      expect(accepted).to.eql([[resId, metaURIDefault, customDefault]]);
+      expect(accepted).to.eql([[ethers.BigNumber.from(resId), metaURIDefault, customDefault]]);
 
       expect(await token.getResObjectByIndex(tokenId, 0)).to.eql([
-        resId,
+        ethers.BigNumber.from(resId),
         metaURIDefault,
         customDefault,
       ]);
@@ -276,8 +276,8 @@ describe('MultiResource', async () => {
 
       const accepted = await token.getFullResources(tokenId);
       expect(accepted).to.eql([
-        [resId2, metaURIDefault, customDefault],
-        [resId, metaURIDefault, customDefault],
+        [ethers.BigNumber.from(resId2), metaURIDefault, customDefault],
+        [ethers.BigNumber.from(resId), metaURIDefault, customDefault],
       ]);
     });
 
@@ -342,10 +342,10 @@ describe('MultiResource', async () => {
       await expect(token.acceptResource(tokenId, 0)).to.emit(token, 'ResourceOverwritten');
 
       expect(await token.getFullResources(tokenId)).to.be.eql([
-        [resId2, metaURIDefault, customDefault],
+        [ethers.BigNumber.from(resId2), metaURIDefault, customDefault],
       ]);
       // Overwrite should be gone
-      expect(await token.getResourceOverwrites(tokenId, pendingResources[0])).to.eql(0);
+      expect(await token.getResourceOverwrites(tokenId, pendingResources[0])).to.eql(ethers.BigNumber.from(0));
     });
 
     it('can overwrite non existing resource to token, it could have been deleted', async function () {
@@ -358,7 +358,7 @@ describe('MultiResource', async () => {
       await token.acceptResource(tokenId, 0);
 
       expect(await token.getFullResources(tokenId)).to.be.eql([
-        [resId, metaURIDefault, customDefault],
+        [ethers.BigNumber.from(resId), metaURIDefault, customDefault],
       ]);
     });
   });
@@ -394,7 +394,7 @@ describe('MultiResource', async () => {
       await token.addResourceToToken(tokenId, resId2, resId);
       await token.rejectResource(tokenId, 0);
 
-      expect(await token.getResourceOverwrites(tokenId, resId2)).to.eql(0);
+      expect(await token.getResourceOverwrites(tokenId, resId2)).to.eql(ethers.BigNumber.from(0));
     });
 
     it('can reject all resources', async function () {
@@ -429,7 +429,7 @@ describe('MultiResource', async () => {
       await token.addResourceToToken(tokenId, resId2, resId);
       await token.rejectAllResources(tokenId);
 
-      expect(await token.getResourceOverwrites(tokenId, resId2)).to.eql(0);
+      expect(await token.getResourceOverwrites(tokenId, resId2)).to.eql(ethers.BigNumber.from(0));
     });
 
     it('max out and reject all pending resources', async function () {
@@ -448,7 +448,7 @@ describe('MultiResource', async () => {
       }
       await token.rejectAllResources(tokenId);
 
-      expect(await token.getResourceOverwrites(1, 2)).to.eql(0);
+      expect(await token.getResourceOverwrites(1, 2)).to.eql(ethers.BigNumber.from(0));
     });
 
     it('cannot reject resource twice', async function () {
