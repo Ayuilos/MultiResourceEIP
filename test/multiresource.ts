@@ -380,6 +380,23 @@ describe('MultiResource', async () => {
       expect(accepted).to.be.eql([]);
     });
 
+    it('can reject resource and overwrites are cleared', async function () {
+      const resId = 1;
+      const resId2 = 2;
+      const tokenId = 1;
+
+      await token.mint(owner.address, tokenId);
+      await addResources([resId, resId2]);
+      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.acceptResource(tokenId, 0);
+
+      // Will try to overwrite but we reject it
+      await token.addResourceToToken(tokenId, resId2, resId);
+      await token.rejectResource(tokenId, 0);
+
+      expect(await token.getResourceOverwrites(tokenId, resId2)).to.eql(0);
+    });
+
     it('can reject all resources', async function () {
       const resId = 1;
       const resId2 = 2;
@@ -396,6 +413,23 @@ describe('MultiResource', async () => {
       expect(pending).to.be.eql([]);
       const accepted = await token.getFullResources(tokenId);
       expect(accepted).to.be.eql([]);
+    });
+
+    it('can reject all resources and overwrites are cleared', async function () {
+      const resId = 1;
+      const resId2 = 2;
+      const tokenId = 1;
+
+      await token.mint(owner.address, tokenId);
+      await addResources([resId, resId2]);
+      await token.addResourceToToken(tokenId, resId, emptyOverwrite);
+      await token.acceptResource(tokenId, 0);
+
+      // Will try to overwrite but we reject all
+      await token.addResourceToToken(tokenId, resId2, resId);
+      await token.rejectAllResources(tokenId);
+
+      expect(await token.getResourceOverwrites(tokenId, resId2)).to.eql(0);
     });
 
     it('cannot reject resource twice', async function () {
