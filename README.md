@@ -60,15 +60,18 @@ The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL 
 ///  Note: the ERC-165 identifier for this interface is 0x********.
 pragma solidity ^0.8.9;
 
-interface IERCMultiResource /* is ERC721 */ {
+interface IMultiResource /* is ERC721 */ {
 
     struct Resource {
       uint32 id;
-      string src;
-      string thumb;
       string metadataURI;
       uint64[] custom;
     }
+
+    /*
+    @dev This emits whenever a resource is set.
+    */
+    event ResourceSet(uint32 id);
 
     /*
     @dev This emits whenever a pending resource has been added to a token's pending resources.
@@ -101,9 +104,9 @@ interface IERCMultiResource /* is ERC721 */ {
     event ResourceOverwritten(uint256 indexed tokenId, uint32 overwritten);
 
     /*
-    @dev This emits whenever a resource is set.
+    @dev This emits whenever resource custom data is set.
     */
-    event ResourceSet(uint32 id);
+    event ResourceCustomDataSet(uint32 resourceId, uint64 customResourceId);
 
     /*
     @dev This emits whenever resource custom data is added to the list of custom on a resource.
@@ -120,11 +123,6 @@ interface IERCMultiResource /* is ERC721 */ {
         uint32 resourceId,
         uint64 customResourceId
     );
-
-    /*
-    @dev This emits whenever resource custom data is set.
-    */
-    event ResourceCustomDataSet(uint32 resourceId, uint64 customResourceId);
 
     /*
     @notice Accepts the resource from pending.
@@ -146,7 +144,7 @@ interface IERCMultiResource /* is ERC721 */ {
     /*
     @notice Rejects all resources, clearing the pending array.
     @dev Sets the pending array to empty.
-    @param tokenId the token to reject a resource
+    @param tokenId the token to reject all resources from
     */
     function rejectAllResources(uint256 tokenId) external;
 
@@ -165,20 +163,20 @@ interface IERCMultiResource /* is ERC721 */ {
     function setPriority(uint256 tokenId, uint16[] memory priorities) external;
 
     /*
-    @notice Returns an array of byte8 identifiers from the active resources
+    @notice Returns an array of uint32 identifiers from the active resources
       array for resource lookup.
     @dev Each uint32 resource corresponds to the id of the relevant resource
-    on the storage. See addResourceEntry dev comment for rationale.
+    on the storage.
     @param tokenId the token of the active resource set to get
     @return an array of uint32 resource ids corresponding to active resources
     */
     function getActiveResources(uint256 tokenId) external view returns(uint32[] memory);
 
     /*
-    @notice Returns an array of byte8 identifiers from the pending resources
+    @notice Returns an array of uint32 identifiers from the pending resources
       array for resource lookup.
     @dev Each uint32 resource corresponds to the id of the relevant resource
-      on the storage. See addResourceEntry dev comment for rationale.
+      on the storage.
     @param tokenId the token of the pending resource set to get
     @return an array of uint32 resource ids corresponding to pending resources
     */
@@ -194,8 +192,8 @@ interface IERCMultiResource /* is ERC721 */ {
     function getActiveResourcePriorities(uint256 tokenId) external view returns(uint16[] memory);
 
     /*
-    @notice Returns the uint32 resource ID a given token will be overwritten if
-      overwrite is enabled for a pending resource.
+    @notice Returns the uint32 resource ID that would be overwritten when accepting the
+      pending resource with id resId on token
     @param tokenId the token of the pending overwrite
     @param resId the resource ID which may overwrite another
     @return a uint32 corresponding to the resource ID of the resource that will be overwritten
@@ -208,6 +206,16 @@ interface IERCMultiResource /* is ERC721 */ {
     @param resourceId the id of the resource to return
     */
     function getResource(uint32 resourceId) external view returns (Resource memory);
+
+    /*
+    @notice Returns the custom resource data associated to the resource and custom resource Id.
+    @dev Structure to handle custom data is up to the implementer
+    @param resourceId the id of the resource to return
+    */
+    function getCustomResourceData(
+        uint32 resourceId,
+        uint64 customResourceId
+    ) external view returns (bytes memory);
 
     /*
     @notice Returns the src field of the first active resource on the token,
@@ -324,50 +332,80 @@ interface ERC165 {
 
 ## Rationale
 
-#Resource fields
-The MultiResource token standard supports five fields:
+### Resource fields
+The MultiResource token standard supports three fields:
 
-id: a uint32 resource identifier
-src: a string pointing to the media associated with the resource
-thumb: a string pointing to thumbnail media associated with the resource
-metadataURI: A string pointing to a metadata file associated with the resource
-custom: A bytes object that may be used to store generic data
+- id: a uint32 resource identifier
+- src: a string pointing to the media associated with the resource
+- custom: A bytes array that may be used to store generic data
 
-#Multi-Resource Storage Schema
+### Multi-Resource Storage Schema
 Resources are stored on a token as an array of uint32 identifiers.
 
 In order to reduce redundant on-chain string storage, multi resource tokens store resources by reference via a inner storage. A resource entry on the storage is stored via a uint32 mapping to resource data.
 
 A resource array is an array of these uint32 references.
 
-With this structure, a generic resource can be added once on the storage, and a reference to it can be added to it once on the token contract. Implementers can then use string concatenation to procedurally generate a link to a content-addressed archive based on the base SRC in the resource and the token ID. Storing the resource on a new token will only take 16 bytes of storage in the resource array per token for repeated / tokenID dependent resources.
+With this structure, a generic resource can be added once on the storage, and a reference to it can be added once on the token contract. Implementers can then use string concatenation to procedurally generate a link to a content-addressed archive based on the base SRC in the resource and the token ID. Storing the resource on a new token will only take 16 bytes of storage in the resource array per token for repeated / tokenID dependent resources.
 
 This structure ensures that for tokens whose source differs only via their tokenId, URIs may still be derived programmatically through concatenation.
 
-#Propose-Commit pattern for resource addition
+### Propose-Commit pattern for resource addition
 Adding resources to an existing token takes the form of a propose-commit pattern to allow for limited mutability by a 3rd party. When adding a resource to a token, it is first placed in the "Pending" array, and must be migrated to the "Active" array by the token owner. The "Pending" resources array is limited to 128 slots to prevent spam and griefing.
 
-#Resource management
+### Resource management
 Several functions for resource management are included. In addition to permissioned migration from "Pending" to "Active", the owner of a token may also drop resources from both the active and the pending array -- an emergency function to clear all entries from the pending array is also included.
 
-##TODO:
-Fallback Resource
-
-#Resource initialization
-
-#Backward Compatibility
+### Backward Compatibility
 The Multi Resource token standard has been based on existing ERC721 implementations in order to take advantage of the robust tooling available for ERC721 implementations and to ensure compatibility with existing ERC721 infrastructure.
 
-## Reference implementation
+### Reference implementation
 
-A reference implementation by Neon Crisis developer: CicadaNCR and Snake Soldiers developer: Steven Pineda is available in the suite: https://github.com/rmrk-team/MultiResourceEIP/blob/master/contracts/MultiResource_EIP/MultiResourceToken.sol There is also a full implementation with only issuer protection for admin settings https://github.com/rmrk-team/MultiResourceEIP/blob/master/contracts/MultiResource_EIP/mocks/MultiResourceTokenMock.sol
+A reference implementation by Neon Crisis developer: CicadaNCR and Snake Soldiers developer: Steven Pineda is available in the suite [here](https://github.com/rmrk-team/MultiResourceEIP/blob/master/contracts/MultiResource_EIP/MultiResourceToken) .sol There is also a full implementation with onlyIssuer protection for admin settings [here](https://github.com/rmrk-team/MultiResourceEIP/blob/master/contracts/MultiResource_EIP/mocks/MultiResourceTokenMock.sol)
 
-## Security Considerations
+#### Implementation extras
+
+Some useful functionalities were added on the implementation but were not considered crucial to be part of the interface.
+
+```
+    /*
+    @notice Returns the src field of the resource at given index on the token,
+      otherwise returns a fallback src.
+    @param tokenId the token to query for a URI
+    @param index of the resource to use
+    @return the string URI of the token
+    */
+    function tokenURIAtIndex(
+        uint256 tokenId,
+        uint256 index
+    ) public view virtual returns (string memory);
+
+    /*
+    @notice Returns the src field of the resource which has custom resource
+      with id customResourceId with the associated value customResourceValue.
+      For instance, you may have a custom resource to indicate the file type,
+      and you want to get the resource which has 'pdf' as value it.
+    @param tokenId the token to query for a URI
+    @param customResourceId
+    @param customResourceValue
+    @return the string URI of the token
+    */
+    function tokenURIForCustomValue(
+        uint256 tokenId,
+        uint64 customResourceId,
+        bytes memory customResourceValue
+    ) public view virtual returns (string memory);
+```
+Besides those, there are **external** functions to get pending and accepted Resources with for different scenarios, and to identify if a resource is enumerated. Resources set as enumerated will append the token id to the end of src, for the resource associated with a token when getting the tokenURI
+
+There are also **internal** implementations of to add resource entries, manage custom resource data, add resource to token, set fallback URI and set enumerated resources. We expect these functions to be only callable by an issuer or admin. This is included with an onlyIssuer guard on the mock [here](https://github.com/rmrk-team/MultiResourceEIP/blob/master/contracts/MultiResource_EIP/mocks/MultiResourceTokenMock.sol).
+
+### Security Considerations
 
 The same security considerations as with ERC721 apply: hidden logic may be present in any of the functions, including burn, add resource, accept resource, and more.
 
 Caution is advised when dealing with non-audited contracts.
 
-## Develop
+### Develop
 
 These contracts are tested in Hardhat. Install Hardhat and run `npx hardhat test` to run the test script on the mock MultiResource implementation.

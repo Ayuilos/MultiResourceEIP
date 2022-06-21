@@ -68,7 +68,9 @@ interface IMultiResource is IERC721 {
         uint32 resourceId
     ) external view returns(uint32);
 
-    function getResource(uint32 resourceId) external view returns (Resource memory);
+    function getResource(
+        uint32 resourceId
+    ) external view returns (Resource memory);
 
     function getCustomResourceData(
         uint32 resourceId,

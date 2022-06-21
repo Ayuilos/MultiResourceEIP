@@ -483,6 +483,13 @@ contract MultiResourceToken is Context, IMultiResource {
         return resource;
     }
 
+    function getCustomResourceData(
+        uint32 resourceId,
+        uint64 customResourceId
+    ) public view virtual returns (bytes memory) {
+        return _customResourceData[resourceId][customResourceId];
+    }
+
     function tokenURI(
         uint256 tokenId
     ) public view virtual returns (string memory) {
@@ -686,13 +693,6 @@ contract MultiResourceToken is Context, IMultiResource {
 
     function getAllResources() public view virtual returns (uint32[] memory) {
         return _allResources;
-    }
-
-    function getCustomResourceData(
-        uint32 resourceId,
-        uint64 customResourceId
-    ) public view virtual returns (bytes memory) {
-        return _customResourceData[resourceId][customResourceId];
     }
 
     function isTokenEnumeratedResource(
