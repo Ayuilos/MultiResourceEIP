@@ -46,7 +46,7 @@ describe('MultiResource', async () => {
     });
 
     it('can support IMultiResource', async function () {
-      expect(await token.supportsInterface('0xb23c8a2b')).to.equal(true);
+      expect(await token.supportsInterface('0xb925bcaf')).to.equal(true);
     });
 
     it('cannot support other interfaceId', async function () {
@@ -432,18 +432,18 @@ describe('MultiResource', async () => {
       expect(await token.getResourceOverwrites(tokenId, resId2)).to.eql(ethers.BigNumber.from(0));
     });
 
-    it('max out and reject all pending resources', async function () {
+    it('can reject all pending resources at max capacity', async function () {
       const tokenId = 1;
-      let resArr = [];
+      const resArr = [];
 
-      for(let i=1; i<128; i++) {
-          resArr.push(i);
+      for (let i = 1; i < 128; i++) {
+        resArr.push(i);
       }
 
       await token.mint(owner.address, tokenId);
       await addResources(resArr);
 
-      for(let i=1; i<128; i++) {
+      for (let i = 1; i < 128; i++) {
         await token.addResourceToToken(tokenId, i, 1);
       }
       await token.rejectAllResources(tokenId);

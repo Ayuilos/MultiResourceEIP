@@ -431,7 +431,6 @@ contract MultiResourceToken is Context, IMultiResource {
             delete _resourceOverwrites[tokenId][resourceId];
             unchecked {++i;}
         }
-        // FIXME: We need this, but it's not doable.
         delete(_pendingResources[tokenId]);
         emit ResourceRejected(tokenId, uint64(0));
     }
@@ -640,10 +639,6 @@ contract MultiResourceToken is Context, IMultiResource {
             _resourceOverwrites[tokenId][resourceId] = overwrites;
             emit ResourceOverwriteProposed(tokenId, resourceId, overwrites);
         }
-        // FIXME: this could be needed as a safeguard since an old reject resource could have left an overwrite set
-        // else if (_resourceOverwrites[tokenId][resourceId] != uint64(0)){
-        //     delete _resourceOverwrites[tokenId][resourceId];
-        // }
 
         emit ResourceAddedToToken(tokenId, resourceId);
     }
