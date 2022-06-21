@@ -37,7 +37,7 @@ contract MultiResourceToken is Context, IMultiResource {
     //mapping of uint32 Ids to resource object
     mapping(uint32 => Resource) private _resources;
 
-    //mapping tokenId to current resource to replacing resource
+    //mapping of tokenId to new resource, to resource to be replaced
     mapping(uint256 => mapping(uint32 => uint32)) private _resourceOverwrites;
 
     //mapping of tokenId to all resources
@@ -75,7 +75,7 @@ contract MultiResourceToken is Context, IMultiResource {
 
 
     function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
-        return 
+        return
             interfaceId == type(IMultiResource).interfaceId ||
             interfaceId == type(IERC721).interfaceId ||
             interfaceId == type(IERC165).interfaceId;
@@ -425,6 +425,12 @@ contract MultiResourceToken is Context, IMultiResource {
             _msgSender() == ownerOf(tokenId),
             "MultiResource: not owner"
         );
+        uint256 len = _pendingResources[tokenId].length;
+        for (uint i; i<len;) {
+            uint32 resourceId = _pendingResources[tokenId][i];
+            delete _resourceOverwrites[tokenId][resourceId];
+            unchecked {++i;}
+        }
         // FIXME: We need this, but it's not doable.
         delete(_pendingResources[tokenId]);
         emit ResourceRejected(tokenId, uint32(0));

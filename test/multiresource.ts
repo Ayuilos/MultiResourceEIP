@@ -432,6 +432,25 @@ describe('MultiResource', async () => {
       expect(await token.getResourceOverwrites(tokenId, resId2)).to.eql(0);
     });
 
+    it('max out and reject all pending resources', async function () {
+      const tokenId = 1;
+      let resArr = [];
+
+      for(let i=1; i<128; i++) {
+          resArr.push(i);
+      }
+
+      await token.mint(owner.address, tokenId);
+      await addResources(resArr);
+
+      for(let i=1; i<128; i++) {
+        await token.addResourceToToken(tokenId, i, 1);
+      }
+      await token.rejectAllResources(tokenId);
+
+      expect(await token.getResourceOverwrites(1, 2)).to.eql(0);
+    });
+
     it('cannot reject resource twice', async function () {
       const resId = 1;
       const tokenId = 1;
