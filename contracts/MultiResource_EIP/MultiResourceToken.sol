@@ -405,7 +405,7 @@ contract MultiResourceToken is Context, IMultiResource {
         );
         require(
             _pendingResources[tokenId].length > index,
-            "MultiResource: Pending child index out of range"
+            "MultiResource: Pending resource index out of range"
         );
         require(
             _msgSender() == ownerOf(tokenId),
