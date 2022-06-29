@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import "./IMultiResourceReceiver.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 pragma solidity ^0.8.0;
 
-interface IMultiResource is IERC721 {
+interface IMultiResource {
 
     struct Resource {
         uint64 id; //8 bytes

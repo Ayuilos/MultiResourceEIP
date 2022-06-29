@@ -4,11 +4,12 @@ pragma solidity ^0.8.15;
 
 import "./interfaces/IMultiResource.sol";
 import "./library/MultiResourceLib.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
-contract MultiResourceToken is Context, IMultiResource {
+contract MultiResourceToken is Context, IERC721, IMultiResource {
 
     using MultiResourceLib for uint256;
     using MultiResourceLib for uint64[];
