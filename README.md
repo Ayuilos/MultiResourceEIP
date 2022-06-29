@@ -3,7 +3,7 @@ A standard interface for multi-resource non-fungible tokens.
 
 ## Abstract
 
-The Multi Resource NFT standard is a standalone part of RMRK concepts and an extension of ERC-721. It allows for the construction of a new primitive: context-dependent output of multimedia information per single NFT.
+The Multi Resource NFT standard is a standalone part of RMRK concepts and can be easily togehter with ERC-721. It allows for the construction of a new primitive: context-dependent output of multimedia information per single NFT.
 
 An NFT can have multiple resources (outputs), and orders them by priority. They do not have to match in mimetype or tokenURI, nor do they depend on one another. Resources are not standalone entities, but should be thought of as “namespaced tokenURIs” that can be ordered at will by the NFT owner, but only modified, updated, added, or removed if agreed on by both owner and minter.
 
@@ -60,7 +60,7 @@ The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL 
 ///  Note: the ERC-165 identifier for this interface is 0x********.
 pragma solidity ^0.8.9;
 
-interface IMultiResource /* is ERC721 */ {
+interface IMultiResource {
 
     struct Resource {
       uint64 id;
@@ -357,7 +357,7 @@ Adding resources to an existing token takes the form of a propose-commit pattern
 Several functions for resource management are included. In addition to permissioned migration from "Pending" to "Active", the owner of a token may also drop resources from both the active and the pending array -- an emergency function to clear all entries from the pending array is also included.
 
 ### Backward Compatibility
-The Multi Resource token standard has been based on existing ERC721 implementations in order to take advantage of the robust tooling available for ERC721 implementations and to ensure compatibility with existing ERC721 infrastructure.
+The Multi Resource token standard has been made compatible with ERC721 implementations in order to take advantage of the robust tooling available for ERC721 implementations and to ensure compatibility with existing ERC721 infrastructure.
 
 ### Reference implementation
 
