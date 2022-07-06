@@ -5,11 +5,12 @@ pragma solidity ^0.8.15;
 import "./interfaces/IMultiResource.sol";
 import "./interfaces/IERC721Receiver.sol";
 import "./library/MultiResourceLib.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
-contract MultiResourceToken is Context, IMultiResource {
+contract MultiResourceToken is Context, IERC721, IMultiResource {
 
     using MultiResourceLib for uint256;
     using MultiResourceLib for uint64[];
@@ -417,7 +418,7 @@ contract MultiResourceToken is Context, IMultiResource {
         );
         require(
             _pendingResources[tokenId].length > index,
-            "MultiResource: Pending child index out of range"
+            "MultiResource: Pending resource index out of range"
         );
         require(
             _msgSender() == ownerOf(tokenId),
@@ -443,7 +444,6 @@ contract MultiResourceToken is Context, IMultiResource {
             delete _resourceOverwrites[tokenId][resourceId];
             unchecked {++i;}
         }
-        // FIXME: We need this, but it's not doable.
         delete(_pendingResources[tokenId]);
         emit ResourceRejected(tokenId, uint64(0));
     }
@@ -652,10 +652,6 @@ contract MultiResourceToken is Context, IMultiResource {
             _resourceOverwrites[tokenId][resourceId] = overwrites;
             emit ResourceOverwriteProposed(tokenId, resourceId, overwrites);
         }
-        // FIXME: this could be needed as a safeguard since an old reject resource could have left an overwrite set
-        // else if (_resourceOverwrites[tokenId][resourceId] != uint64(0)){
-        //     delete _resourceOverwrites[tokenId][resourceId];
-        // }
 
         emit ResourceAddedToToken(tokenId, resourceId);
     }

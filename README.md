@@ -3,7 +3,7 @@ A standard interface for multi-resource non-fungible tokens.
 
 ## Abstract
 
-The Multi Resource NFT standard is a standalone part of RMRK concepts and an extension of ERC-721. It allows for the construction of a new primitive: context-dependent output of multimedia information per single NFT.
+The Multi Resource NFT standard is a standalone part of RMRK concepts and can be easily togehter with ERC-721. It allows for the construction of a new primitive: context-dependent output of multimedia information per single NFT.
 
 An NFT can have multiple resources (outputs), and orders them by priority. They do not have to match in mimetype or tokenURI, nor do they depend on one another. Resources are not standalone entities, but should be thought of as “namespaced tokenURIs” that can be ordered at will by the NFT owner, but only modified, updated, added, or removed if agreed on by both owner and minter.
 
@@ -60,33 +60,33 @@ The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL 
 ///  Note: the ERC-165 identifier for this interface is 0x********.
 pragma solidity ^0.8.9;
 
-interface IMultiResource /* is ERC721 */ {
+interface IMultiResource {
 
     struct Resource {
-      uint32 id;
+      uint64 id;
       string metadataURI;
-      uint64[] custom;
+      uint128[] custom;
     }
 
     /*
     @dev This emits whenever a resource is set.
     */
-    event ResourceSet(uint32 id);
+    event ResourceSet(uint64 id);
 
     /*
     @dev This emits whenever a pending resource has been added to a token's pending resources.
     */
-    event ResourceAddedToToken(uint256 indexed tokenId, uint32 resourceId);
+    event ResourceAddedToToken(uint256 indexed tokenId, uint64 resourceId);
 
     /*
     @dev This emits whenever a resource has accepted by the token owner.
     */
-    event ResourceAccepted(uint256 indexed tokenId, uint32 resourceId);
+    event ResourceAccepted(uint256 indexed tokenId, uint64 resourceId);
 
     /*
     @dev This emits whenever a pending resource has been dropped from the pending resources array.
     */
-    event ResourceRejected(uint256 indexed tokenId, uint32 resourceId);
+    event ResourceRejected(uint256 indexed tokenId, uint64 resourceId);
 
     /*
     @dev This emits whenever a resource's priority has been set.
@@ -96,32 +96,32 @@ interface IMultiResource /* is ERC721 */ {
     /*
     @dev This emits whenever a pending resource also proposes to overwrite an existing resource.
     */
-    event ResourceOverwriteProposed(uint256 indexed tokenId, uint32 resourceId, uint32 overwrites);
+    event ResourceOverwriteProposed(uint256 indexed tokenId, uint64 resourceId, uint64 overwrites);
 
     /*
     @dev This emits whenever a pending resource overwrites an existing resource.
     */
-    event ResourceOverwritten(uint256 indexed tokenId, uint32 overwritten);
+    event ResourceOverwritten(uint256 indexed tokenId, uint64 overwritten);
 
     /*
     @dev This emits whenever resource custom data is set.
     */
-    event ResourceCustomDataSet(uint32 resourceId, uint64 customResourceId);
+    event ResourceCustomDataSet(uint64 resourceId, uint128 customResourceId);
 
     /*
     @dev This emits whenever resource custom data is added to the list of custom on a resource.
     */
     event ResourceCustomDataAdded(
-        uint32 resourceId,
-        uint64 customResourceId
+        uint64 resourceId,
+        uint128 customResourceId
     );
 
     /*
     @dev This emits whenever resource custom data is removed from the list of custom on a resource.
     */
     event ResourceCustomDataRemoved(
-        uint32 resourceId,
-        uint64 customResourceId
+        uint64 resourceId,
+        uint128 customResourceId
     );
 
     /*
@@ -163,24 +163,24 @@ interface IMultiResource /* is ERC721 */ {
     function setPriority(uint256 tokenId, uint16[] memory priorities) external;
 
     /*
-    @notice Returns an array of uint32 identifiers from the active resources
+    @notice Returns an array of uint64 identifiers from the active resources
       array for resource lookup.
-    @dev Each uint32 resource corresponds to the id of the relevant resource
+    @dev Each uint64 resource corresponds to the id of the relevant resource
     on the storage.
     @param tokenId the token of the active resource set to get
-    @return an array of uint32 resource ids corresponding to active resources
+    @return an array of uint64 resource ids corresponding to active resources
     */
-    function getActiveResources(uint256 tokenId) external view returns(uint32[] memory);
+    function getActiveResources(uint256 tokenId) external view returns(uint64[] memory);
 
     /*
-    @notice Returns an array of uint32 identifiers from the pending resources
+    @notice Returns an array of uint64 identifiers from the pending resources
       array for resource lookup.
-    @dev Each uint32 resource corresponds to the id of the relevant resource
+    @dev Each uint64 resource corresponds to the id of the relevant resource
       on the storage.
     @param tokenId the token of the pending resource set to get
-    @return an array of uint32 resource ids corresponding to pending resources
+    @return an array of uint64 resource ids corresponding to pending resources
     */
-    function getPendingResources(uint256 tokenId) external view returns(uint32[] memory);
+    function getPendingResources(uint256 tokenId) external view returns(uint64[] memory);
 
     /*
     @notice Returns an array of uint16 resource priorities
@@ -192,20 +192,20 @@ interface IMultiResource /* is ERC721 */ {
     function getActiveResourcePriorities(uint256 tokenId) external view returns(uint16[] memory);
 
     /*
-    @notice Returns the uint32 resource ID that would be overwritten when accepting the
+    @notice Returns the uint64 resource ID that would be overwritten when accepting the
       pending resource with id resId on token
     @param tokenId the token of the pending overwrite
     @param resId the resource ID which may overwrite another
-    @return a uint32 corresponding to the resource ID of the resource that will be overwritten
+    @return a uint64 corresponding to the resource ID of the resource that will be overwritten
     */
-    function getResourceOverwrites(uint256 tokenId, uint32 resId) external view returns(uint32);
+    function getResourceOverwrites(uint256 tokenId, uint64 resId) external view returns(uint64);
 
     /*
     @notice Returns the resource at the id.
     @dev Exact struct data types are left to the implementer
     @param resourceId the id of the resource to return
     */
-    function getResource(uint32 resourceId) external view returns (Resource memory);
+    function getResource(uint64 resourceId) external view returns (Resource memory);
 
     /*
     @notice Returns the custom resource data associated to the resource and custom resource Id.
@@ -213,8 +213,8 @@ interface IMultiResource /* is ERC721 */ {
     @param resourceId the id of the resource to return
     */
     function getCustomResourceData(
-        uint32 resourceId,
-        uint64 customResourceId
+        uint64 resourceId,
+        uint128 customResourceId
     ) external view returns (bytes memory);
 
     /*
@@ -335,16 +335,16 @@ interface ERC165 {
 ### Resource fields
 The MultiResource token standard supports three fields:
 
-- id: a uint32 resource identifier
+- id: a uint64 resource identifier
 - src: a string pointing to the media associated with the resource
 - custom: A bytes array that may be used to store generic data
 
 ### Multi-Resource Storage Schema
-Resources are stored on a token as an array of uint32 identifiers.
+Resources are stored on a token as an array of uint64 identifiers.
 
-In order to reduce redundant on-chain string storage, multi resource tokens store resources by reference via a inner storage. A resource entry on the storage is stored via a uint32 mapping to resource data.
+In order to reduce redundant on-chain string storage, multi resource tokens store resources by reference via a inner storage. A resource entry on the storage is stored via a uint64 mapping to resource data.
 
-A resource array is an array of these uint32 references.
+A resource array is an array of these uint64 references.
 
 With this structure, a generic resource can be added once on the storage, and a reference to it can be added once on the token contract. Implementers can then use string concatenation to procedurally generate a link to a content-addressed archive based on the base SRC in the resource and the token ID. Storing the resource on a new token will only take 16 bytes of storage in the resource array per token for repeated / tokenID dependent resources.
 
@@ -357,7 +357,7 @@ Adding resources to an existing token takes the form of a propose-commit pattern
 Several functions for resource management are included. In addition to permissioned migration from "Pending" to "Active", the owner of a token may also drop resources from both the active and the pending array -- an emergency function to clear all entries from the pending array is also included.
 
 ### Backward Compatibility
-The Multi Resource token standard has been based on existing ERC721 implementations in order to take advantage of the robust tooling available for ERC721 implementations and to ensure compatibility with existing ERC721 infrastructure.
+The Multi Resource token standard has been made compatible with ERC721 implementations in order to take advantage of the robust tooling available for ERC721 implementations and to ensure compatibility with existing ERC721 infrastructure.
 
 ### Reference implementation
 
@@ -392,7 +392,7 @@ Some useful functionalities were added on the implementation but were not consid
     */
     function tokenURIForCustomValue(
         uint256 tokenId,
-        uint64 customResourceId,
+        uint128 customResourceId,
         bytes memory customResourceValue
     ) public view virtual returns (string memory);
 ```
