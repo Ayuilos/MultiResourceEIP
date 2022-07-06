@@ -3,6 +3,7 @@
 pragma solidity ^0.8.15;
 
 import "./interfaces/IMultiResource.sol";
+import "./interfaces/IERC721Receiver.sol";
 import "./library/MultiResourceLib.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -337,7 +338,18 @@ contract MultiResourceToken is Context, IMultiResource {
                 data
             ) returns (bytes4 retval) {
                 return retval == IMultiResourceReceiver.onMultiResourceReceived.selector;
-            } catch (bytes memory reason) {
+            } catch (bytes memory) {}
+
+            try IERC721Receiver(to).onERC721Received(
+                _msgSender(),
+                from,
+                tokenId,
+                data
+            ) returns (bytes4 retval) {
+                return retval == 0x150b7a02; //IERC721 receiver selector
+            }
+
+            catch (bytes memory reason) {
                 if (reason.length == 0) {
                     revert("MultiResource: transfer to non MultiResource Receiver implementer");
                 } else {

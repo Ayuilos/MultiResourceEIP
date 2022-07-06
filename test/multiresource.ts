@@ -1,10 +1,18 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { MultiResourceTokenMock } from '../typechain';
+import {
+  MultiResourceTokenMock,
+  ERC721ReceiverMock,
+  NonReceiverMock,
+  MultiResourceReceiverMock
+} from '../typechain';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 describe('MultiResource', async () => {
   let token: MultiResourceTokenMock;
+  let nonReceiver: NonReceiverMock;
+  let receiver721: ERC721ReceiverMock;
+  let receiverMultiresource: MultiResourceReceiverMock;
 
   let owner: SignerWithAddress;
   let addrs: any[];
@@ -51,6 +59,59 @@ describe('MultiResource', async () => {
 
     it('cannot support other interfaceId', async function () {
       expect(await token.supportsInterface('0xffffffff')).to.equal(false);
+    });
+  });
+
+  describe('Check OnReceived ERC721 and Multiresource', async function () {
+
+    it('Revert on transfer to non onERC721/onMultiresource implementer', async function () {
+      const tokenId = 1;
+      await token.mint(owner.address, tokenId);
+
+      const NonReceiver = await ethers.getContractFactory('NonReceiverMock');
+      nonReceiver = await NonReceiver.deploy();
+      await nonReceiver.deployed();
+
+      await expect(token.connect(owner)['safeTransferFrom(address,address,uint256)'](
+        owner.address,
+        nonReceiver.address,
+        1
+      )).to.be.revertedWith('MultiResource: transfer to non MultiResource Receiver implementer');
+
+
+    });
+
+    it('onMultiResourceReceived callback on transfer', async function () {
+      const tokenId = 1;
+      await token.mint(owner.address, tokenId);
+
+      const MRReceiver = await ethers.getContractFactory('MultiResourceReceiverMock');
+      receiverMultiresource = await MRReceiver.deploy();
+      await receiverMultiresource.deployed();
+
+      await token.connect(owner)['safeTransferFrom(address,address,uint256)'](
+        owner.address,
+        receiverMultiresource.address,
+        1
+      );
+      expect(await token.ownerOf(1)).to.equal(receiverMultiresource.address);
+    });
+
+    it('onERC721Received callback on transfer', async function () {
+      const tokenId = 1;
+      await token.mint(owner.address, tokenId);
+
+      const ERC721Receiver = await ethers.getContractFactory('ERC721ReceiverMock');
+      receiver721 = await ERC721Receiver.deploy();
+      await receiver721.deployed();
+
+      await token.connect(owner)['safeTransferFrom(address,address,uint256)'](
+        owner.address,
+        receiver721.address,
+        1
+      );
+      expect(await token.ownerOf(1)).to.equal(receiver721.address);
+
     });
   });
 
