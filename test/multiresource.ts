@@ -4,7 +4,7 @@ import {
   MultiResourceTokenMock,
   ERC721ReceiverMock,
   NonReceiverMock,
-  MultiResourceReceiverMock
+  MultiResourceReceiverMock,
 } from '../typechain';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -53,7 +53,7 @@ describe('MultiResource', async () => {
     });
 
     it('can support IMultiResource', async function () {
-      expect(await token.supportsInterface('0xb925bcaf')).to.equal(true);
+      expect(await token.supportsInterface('0x4d6339c8')).to.equal(true);
     });
 
     it('cannot support other interfaceId', async function () {
@@ -62,7 +62,6 @@ describe('MultiResource', async () => {
   });
 
   describe('Check OnReceived ERC721 and Multiresource', async function () {
-
     it('Revert on transfer to non onERC721/onMultiresource implementer', async function () {
       const tokenId = 1;
       await token.mint(owner.address, tokenId);
@@ -71,13 +70,11 @@ describe('MultiResource', async () => {
       nonReceiver = await NonReceiver.deploy();
       await nonReceiver.deployed();
 
-      await expect(token.connect(owner)['safeTransferFrom(address,address,uint256)'](
-        owner.address,
-        nonReceiver.address,
-        1
-      )).to.be.revertedWith('MultiResource: transfer to non MultiResource Receiver implementer');
-
-
+      await expect(
+        token
+          .connect(owner)
+          ['safeTransferFrom(address,address,uint256)'](owner.address, nonReceiver.address, 1),
+      ).to.be.revertedWith('MultiResource: transfer to non MultiResource Receiver implementer');
     });
 
     it('onMultiResourceReceived callback on transfer', async function () {
@@ -88,11 +85,13 @@ describe('MultiResource', async () => {
       receiverMultiresource = await MRReceiver.deploy();
       await receiverMultiresource.deployed();
 
-      await token.connect(owner)['safeTransferFrom(address,address,uint256)'](
-        owner.address,
-        receiverMultiresource.address,
-        1
-      );
+      await token
+        .connect(owner)
+        ['safeTransferFrom(address,address,uint256)'](
+          owner.address,
+          receiverMultiresource.address,
+          1,
+        );
       expect(await token.ownerOf(1)).to.equal(receiverMultiresource.address);
     });
 
@@ -104,13 +103,10 @@ describe('MultiResource', async () => {
       receiver721 = await ERC721Receiver.deploy();
       await receiver721.deployed();
 
-      await token.connect(owner)['safeTransferFrom(address,address,uint256)'](
-        owner.address,
-        receiver721.address,
-        1
-      );
+      await token
+        .connect(owner)
+        ['safeTransferFrom(address,address,uint256)'](owner.address, receiver721.address, 1);
       expect(await token.ownerOf(1)).to.equal(receiver721.address);
-
     });
   });
 
@@ -255,9 +251,9 @@ describe('MultiResource', async () => {
       await token.mint(owner.address, tokenId);
       await addResources([resId]);
       await token.addResourceToToken(tokenId, resId, 0);
-      await expect(token.addResourceToToken(tokenId, ethers.BigNumber.from(resId), 0)).to.be.revertedWith(
-        'MultiResource: Resource already exists on token',
-      );
+      await expect(
+        token.addResourceToToken(tokenId, ethers.BigNumber.from(resId), 0),
+      ).to.be.revertedWith('MultiResource: Resource already exists on token');
     });
 
     it('cannot add too many resources to the same token', async function () {
@@ -405,7 +401,9 @@ describe('MultiResource', async () => {
         [ethers.BigNumber.from(resId2), metaURIDefault, customDefault],
       ]);
       // Overwrite should be gone
-      expect(await token.getResourceOverwrites(tokenId, pendingResources[0])).to.eql(ethers.BigNumber.from(0));
+      expect(await token.getResourceOverwrites(tokenId, pendingResources[0])).to.eql(
+        ethers.BigNumber.from(0),
+      );
     });
 
     it('can overwrite non existing resource to token, it could have been deleted', async function () {
@@ -585,7 +583,7 @@ describe('MultiResource', async () => {
     it('cannot set priorities for non existing token', async function () {
       const tokenId = 1;
       await expect(token.connect(addrs[1]).setPriority(tokenId, [])).to.be.revertedWith(
-        'ERC721: owner query for nonexistent token',
+        'MultiResource: approved query for nonexistent token',
       );
     });
   });
