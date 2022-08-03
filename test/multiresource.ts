@@ -15,7 +15,7 @@ describe('MultiResource', async () => {
   let receiverMultiresource: MultiResourceReceiverMock;
 
   let owner: SignerWithAddress;
-  let addrs: any[];
+  let addrs: SignerWithAddress[];
 
   const name = 'RmrkTest';
   const symbol = 'RMRKTST';
@@ -720,6 +720,47 @@ describe('MultiResource', async () => {
     expect(
       await token.tokenURIForCustomValue(tokenId, customDataOtherKey, customDataTypeValueA),
     ).to.eql('fallback404');
+  });
+
+  describe('Approval Cleaning', async function () {
+    it('cleans token and resources approvals on transfer', async function () {
+      const tokenId = 1;
+      const tokenOwner = addrs[1];
+      const newOwner = addrs[2];
+      const approved = addrs[3];
+      await token.mint(tokenOwner.address, tokenId);
+      await token.connect(tokenOwner).approve(approved.address, tokenId);
+      await token.connect(tokenOwner).approveForResources(approved.address, tokenId);
+
+      expect(await token.getApproved(tokenId)).to.eql(approved.address);
+      expect(await token.getApprovedForResources(tokenId)).to.eql(approved.address);
+
+      await token.connect(tokenOwner).transfer(newOwner.address, tokenId);
+
+      expect(await token.getApproved(tokenId)).to.eql(ethers.constants.AddressZero);
+      expect(await token.getApprovedForResources(tokenId)).to.eql(ethers.constants.AddressZero);
+    });
+
+    it('cleans token and resources approvals on burn', async function () {
+      const tokenId = 1;
+      const tokenOwner = addrs[1];
+      const approved = addrs[3];
+      await token.mint(tokenOwner.address, tokenId);
+      await token.connect(tokenOwner).approve(approved.address, tokenId);
+      await token.connect(tokenOwner).approveForResources(approved.address, tokenId);
+
+      expect(await token.getApproved(tokenId)).to.eql(approved.address);
+      expect(await token.getApprovedForResources(tokenId)).to.eql(approved.address);
+
+      await token.connect(tokenOwner).burn(tokenId);
+
+      await expect(token.getApproved(tokenId)).to.be.revertedWith(
+        'MultiResource: approved query for nonexistent token',
+      );
+      await expect(token.getApprovedForResources(tokenId)).to.be.revertedWith(
+        'MultiResource: approved query for nonexistent token',
+      );
+    });
   });
 
   async function mintSampleToken(): Promise<{ tokenOwner: SignerWithAddress; tokenId: number }> {

@@ -165,7 +165,7 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
     ) public virtual view returns (address) {
         require(
             _exists(tokenId),
-            "MultiResource: approved for query for nonexistent token"
+            "MultiResource: approved query for nonexistent token"
         );
         return _tokenApprovalsForResources[tokenId];
     }
@@ -327,6 +327,7 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
 
         // Clear approvals
         _approve(address(0), tokenId);
+        _approveForResources(address(0), tokenId);
 
         _balances[owner] -= 1;
         delete _owners[tokenId];
@@ -355,6 +356,7 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
 
         // Clear approvals from the previous owner
         _approve(address(0), tokenId);
+        _approveForResources(address(0), tokenId);
 
         _balances[from] -= 1;
         _balances[to] += 1;
