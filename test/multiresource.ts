@@ -287,28 +287,27 @@ describe('MultiResource', async () => {
   });
 
   describe('Accepting resources', async function () {
-    it('can accept resource', async function () {
-      const resId = 1;
-      const tokenId = 1;
+    it('can accept resource if owner', async function () {
+      const { tokenOwner, tokenId } = await mintSampleToken();
+      const approved = tokenOwner;
 
-      await token.mint(owner.address, tokenId);
-      await addResources([resId]);
-      await token.addResourceToToken(tokenId, resId, 0);
-      await expect(token.acceptResource(tokenId, 0))
-        .to.emit(token, 'ResourceAccepted')
-        .withArgs(tokenId, resId);
+      await checkAcceptFromAddress(approved, tokenId);
+    });
 
-      const pending = await token.getFullPendingResources(tokenId);
-      expect(pending).to.be.eql([]);
+    it('can accept resource if approved for resources', async function () {
+      const { tokenId } = await mintSampleToken();
+      const approved = addrs[1];
 
-      const accepted = await token.getFullResources(tokenId);
-      expect(accepted).to.eql([[ethers.BigNumber.from(resId), metaURIDefault, customDefault]]);
+      await token.approveForResources(approved.address, tokenId);
+      await checkAcceptFromAddress(approved, tokenId);
+    });
 
-      expect(await token.getResObjectByIndex(tokenId, 0)).to.eql([
-        ethers.BigNumber.from(resId),
-        metaURIDefault,
-        customDefault,
-      ]);
+    it('can accept resource if approved for resources for all', async function () {
+      const { tokenId } = await mintSampleToken();
+      const approved = addrs[2];
+
+      await token.setApprovalForAllForResources(approved.address, true);
+      await checkAcceptFromAddress(approved, tokenId);
     });
 
     it('can accept multiple resources', async function () {
@@ -422,20 +421,50 @@ describe('MultiResource', async () => {
   });
 
   describe('Rejecting resources', async function () {
-    it('can reject resource', async function () {
-      const resId = 1;
-      const tokenId = 1;
+    it('can reject resource if owner', async function () {
+      const { tokenOwner, tokenId } = await mintSampleToken();
+      const approved = tokenOwner;
 
-      await token.mint(owner.address, tokenId);
-      await addResources([resId]);
-      await token.addResourceToToken(tokenId, resId, 0);
+      await checkRejectFromAddress(approved, tokenId);
+    });
 
-      await expect(token.rejectResource(tokenId, 0)).to.emit(token, 'ResourceRejected');
+    it('can reject resource if approved for resources', async function () {
+      const { tokenId } = await mintSampleToken();
+      const approved = addrs[1];
 
-      const pending = await token.getFullPendingResources(tokenId);
-      expect(pending).to.be.eql([]);
-      const accepted = await token.getFullResources(tokenId);
-      expect(accepted).to.be.eql([]);
+      await token.approveForResources(approved.address, tokenId);
+      await checkRejectFromAddress(approved, tokenId);
+    });
+
+    it('can reject resource if approved for resources for all', async function () {
+      const { tokenId } = await mintSampleToken();
+      const approved = addrs[2];
+
+      await token.setApprovalForAllForResources(approved.address, true);
+      await checkRejectFromAddress(approved, tokenId);
+    });
+
+    it('can reject all resources if owner', async function () {
+      const { tokenOwner, tokenId } = await mintSampleToken();
+      const approved = tokenOwner;
+
+      await checkRejectAllFromAddress(approved, tokenId);
+    });
+
+    it('can reject all resources if approved for resources', async function () {
+      const { tokenId } = await mintSampleToken();
+      const approved = addrs[1];
+
+      await token.approveForResources(approved.address, tokenId);
+      await checkRejectAllFromAddress(approved, tokenId);
+    });
+
+    it('can reject all resources if approved for resources for all', async function () {
+      const { tokenId } = await mintSampleToken();
+      const approved = addrs[2];
+
+      await token.setApprovalForAllForResources(approved.address, true);
+      await checkRejectAllFromAddress(approved, tokenId);
     });
 
     it('can reject resource and overwrites are cleared', async function () {
@@ -453,24 +482,6 @@ describe('MultiResource', async () => {
       await token.rejectResource(tokenId, 0);
 
       expect(await token.getResourceOverwrites(tokenId, resId2)).to.eql(ethers.BigNumber.from(0));
-    });
-
-    it('can reject all resources', async function () {
-      const resId = 1;
-      const resId2 = 2;
-      const tokenId = 1;
-
-      await token.mint(owner.address, tokenId);
-      await addResources([resId, resId2]);
-      await token.addResourceToToken(tokenId, resId, 0);
-      await token.addResourceToToken(tokenId, resId2, 0);
-
-      await expect(token.rejectAllResources(tokenId)).to.emit(token, 'ResourceRejected');
-
-      const pending = await token.getFullPendingResources(tokenId);
-      expect(pending).to.be.eql([]);
-      const accepted = await token.getFullResources(tokenId);
-      expect(accepted).to.be.eql([]);
     });
 
     it('can reject all resources and overwrites are cleared', async function () {
@@ -711,6 +722,14 @@ describe('MultiResource', async () => {
     ).to.eql('fallback404');
   });
 
+  async function mintSampleToken(): Promise<{ tokenOwner: SignerWithAddress; tokenId: number }> {
+    const tokenOwner = owner;
+    const tokenId = 1;
+    await token.mint(tokenOwner.address, tokenId);
+
+    return { tokenOwner, tokenId };
+  }
+
   async function addResources(ids: number[]): Promise<void> {
     ids.forEach(async (resId) => {
       await token.addResourceEntry(resId, metaURIDefault, customDefault);
@@ -726,5 +745,72 @@ describe('MultiResource', async () => {
     await token.addResourceToToken(tokenId, resId2, 0);
     await token.acceptResource(tokenId, 0);
     await token.acceptResource(tokenId, 0);
+  }
+
+  async function checkAcceptFromAddress(
+    accepter: SignerWithAddress,
+    tokenId: number,
+  ): Promise<void> {
+    const resId = 1;
+
+    await addResources([resId]);
+    await token.addResourceToToken(tokenId, resId, 0);
+    await expect(token.connect(accepter).acceptResource(tokenId, 0))
+      .to.emit(token, 'ResourceAccepted')
+      .withArgs(tokenId, resId);
+
+    const pending = await token.getFullPendingResources(tokenId);
+    expect(pending).to.be.eql([]);
+
+    const accepted = await token.getFullResources(tokenId);
+    expect(accepted).to.eql([[ethers.BigNumber.from(resId), metaURIDefault, customDefault]]);
+
+    expect(await token.getResObjectByIndex(tokenId, 0)).to.eql([
+      ethers.BigNumber.from(resId),
+      metaURIDefault,
+      customDefault,
+    ]);
+  }
+
+  async function checkRejectFromAddress(
+    rejecter: SignerWithAddress,
+    tokenId: number,
+  ): Promise<void> {
+    const resId = 1;
+
+    await addResources([resId]);
+    await token.addResourceToToken(tokenId, resId, 0);
+
+    await expect(token.connect(rejecter).rejectResource(tokenId, 0)).to.emit(
+      token,
+      'ResourceRejected',
+    );
+
+    const pending = await token.getFullPendingResources(tokenId);
+    expect(pending).to.be.eql([]);
+    const accepted = await token.getFullResources(tokenId);
+    expect(accepted).to.be.eql([]);
+  }
+
+  async function checkRejectAllFromAddress(
+    rejecter: SignerWithAddress,
+    tokenId: number,
+  ): Promise<void> {
+    const resId = 1;
+    const resId2 = 2;
+
+    await addResources([resId, resId2]);
+    await token.addResourceToToken(tokenId, resId, 0);
+    await token.addResourceToToken(tokenId, resId2, 0);
+
+    await expect(token.connect(rejecter).rejectAllResources(tokenId)).to.emit(
+      token,
+      'ResourceRejected',
+    );
+
+    const pending = await token.getFullPendingResources(tokenId);
+    expect(pending).to.be.eql([]);
+    const accepted = await token.getFullResources(tokenId);
+    expect(accepted).to.be.eql([]);
   }
 });
