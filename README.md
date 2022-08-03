@@ -124,6 +124,17 @@ interface IMultiResource {
         uint128 customResourceId
     );
 
+    /// @dev This emits when the approved address for resources for an NFT is
+    ///  changed or reaffirmed. The zero address indicates there is no approved
+    ///  address. When a Transfer event emits, this also indicates that the
+    ///  approved address for resources for that NFT (if any) is reset to none.
+    event Approval(address indexed _owner, address indexed _approved, uint256 indexed _tokenId);
+
+    /// @dev This emits when an operator for resources is enabled or disabled
+    ///  for an owner. The operator can manage resources for all NFTs of the
+    /// owner.
+    event ApprovalForAll(address indexed _owner, address indexed _operator, bool _approved);
+
     /*
     @notice Accepts the resource from pending.
     @dev Moves the resource from the pending array to the accepted array. Array
@@ -224,6 +235,35 @@ interface IMultiResource {
     @return the string URI of the token
     */
     function tokenURI(uint256 tokenId) external view returns (string memory);
+
+    /// @notice Change or reaffirm the approved address for resources for an NFT
+    /// @dev The zero address indicates there is no approved address.
+    ///  Throws unless `msg.sender` is the current NFT owner, or an authorized
+    ///  operator of the current owner. Emits ApprovalForResources event.
+    /// @param to The new approved NFT controller
+    /// @param tokenId The NFT to approve
+    function approveForResources(address to, uint256 tokenId) external payable;
+
+    /// @notice Enable or disable approval for a third party ("operator") to manage
+    ///  resources for all of the `msg.sender`'s assets
+    /// @dev Emits the ApprovalForAllForResources event. The contract MUST allow
+    ///  multiple operators per owner.
+    /// @param operator Address to add to the set of authorized operators
+    /// @param approved True if the operator is approved, false to revoke approval
+    function setApprovalForAllForResources(address operator, bool approved) external;
+
+    /// @notice Get the approved address for resources for a single NFT
+    /// @dev Throws if `tokenId` is not a valid NFT.
+    /// @param tokenId The NFT to find the approved address for
+    /// @return The approved address for this NFT, or the zero address if there is none
+    function getApprovedForResources(uint256 tokenId) external view returns (address);
+
+    /// @notice Query if an address is an authorized operator for resources of
+    ///  another address
+    /// @param owner The address that owns the NFTs
+    /// @param operator The address that acts on behalf of the owner
+    /// @return True if `operator` is an approved operator for `owner`, false otherwise
+    function isApprovedForAllForResources(address owner, address operator) external view returns (bool);
 
 }
 
