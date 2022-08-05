@@ -42,6 +42,18 @@ interface IMultiResource {
         uint128 customResourceId
     );
 
+    event ApprovalForResources(
+        address indexed owner,
+        address indexed approved,
+        uint256 indexed tokenId
+    );
+
+    event ApprovalForAllForResources(
+        address indexed owner,
+        address indexed operator,
+        bool approved
+    );
+
     function acceptResource(uint256 tokenId, uint256 index) external;
 
     function rejectResource(uint256 tokenId, uint256 index) external;
@@ -99,4 +111,19 @@ interface IMultiResource {
     function getFullPendingResources(
         uint256 tokenId
     ) external view returns (Resource[] memory);
+
+    // Approvals
+    function approveForResources(address to, uint256 tokenId) external;
+
+    function getApprovedForResources(
+        uint256 tokenId
+    ) external view returns (address);
+
+    function setApprovalForAllForResources(
+        address operator, bool approved
+    ) external;
+
+    function isApprovedForAllForResources(
+        address owner, address operator
+    ) external view returns (bool);
 }

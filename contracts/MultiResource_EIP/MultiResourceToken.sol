@@ -36,6 +36,14 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
+    // Mapping from token ID to approved address for resources
+    mapping(uint256 => address) internal _tokenApprovalsForResources;
+
+    // Mapping from owner to operator approvals for resources
+    mapping(
+        address => mapping(address => bool)
+    ) internal _operatorApprovalsForResources;
+
     //mapping of uint64 Ids to resource object
     mapping(uint64 => Resource) private _resources;
 
@@ -128,16 +136,38 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
         _approve(to, tokenId);
     }
 
+    function approveForResources(address to, uint256 tokenId) external virtual {
+        address owner = ownerOf(tokenId);
+        require(to != owner, "MultiResource: approval to current owner");
+        require(
+            _msgSender() == owner
+            || isApprovedForAllForResources(owner, _msgSender()),
+            "MultiResource: approve caller is not owner nor approved for all"
+        );
+        _approveForResources(to, tokenId);
+    }
+
 
     function getApproved(
         uint256 tokenId)
-     public view virtual override returns (address) {
+    public view virtual override returns (address) {
         require(
             _exists(tokenId),
             "MultiResource: approved query for nonexistent token"
         );
 
         return _tokenApprovals[tokenId];
+    }
+
+
+    function getApprovedForResources(
+        uint256 tokenId
+    ) public virtual view returns (address) {
+        require(
+            _exists(tokenId),
+            "MultiResource: approved query for nonexistent token"
+        );
+        return _tokenApprovalsForResources[tokenId];
     }
 
 
@@ -153,6 +183,19 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
         address operator
     ) public view virtual override returns (bool) {
         return _operatorApprovals[owner][operator];
+    }
+
+    function setApprovalForAllForResources(
+        address operator,
+        bool approved
+    ) public virtual override {
+        _setApprovalForAllForResources(_msgSender(), operator, approved);
+    }
+
+    function isApprovedForAllForResources(
+        address owner, address operator
+    ) public virtual view returns (bool) {
+        return _operatorApprovalsForResources[owner][operator];
     }
 
 
@@ -218,13 +261,28 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
     ) internal view virtual returns (bool) {
         require(
             _exists(tokenId),
-            "MultiResource: operator query for nonexistent token"
+            "MultiResource: approved query for nonexistent token"
         );
         address owner = ownerOf(tokenId);
         return (
             spender == owner
             || isApprovedForAll(owner, spender)
             || getApproved(tokenId) == spender
+        );
+    }
+
+    function _isApprovedForResourcesOrOwner(
+        address user, uint256 tokenId
+    ) internal view virtual returns (bool) {
+        require(
+            _exists(tokenId),
+            "MultiResource: approved query for nonexistent token"
+        );
+        address owner = ownerOf(tokenId);
+        return (
+            user == owner
+            || isApprovedForAllForResources(owner, user)
+            || getApprovedForResources(tokenId) == user
         );
     }
 
@@ -269,6 +327,7 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
 
         // Clear approvals
         _approve(address(0), tokenId);
+        _approveForResources(address(0), tokenId);
 
         _balances[owner] -= 1;
         delete _owners[tokenId];
@@ -297,6 +356,7 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
 
         // Clear approvals from the previous owner
         _approve(address(0), tokenId);
+        _approveForResources(address(0), tokenId);
 
         _balances[from] -= 1;
         _balances[to] += 1;
@@ -313,6 +373,12 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
         emit Approval(ownerOf(tokenId), to, tokenId);
     }
 
+    function _approveForResources(
+        address to, uint256 tokenId
+    ) internal virtual {
+        _tokenApprovalsForResources[tokenId] = to;
+        emit ApprovalForResources(ownerOf(tokenId), to, tokenId);
+    }
 
     function _setApprovalForAll(
         address owner,
@@ -322,6 +388,17 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
         require(owner != operator, "MultiResource: approve to caller");
         _operatorApprovals[owner][operator] = approved;
         emit ApprovalForAll(owner, operator, approved);
+    }
+
+
+    function _setApprovalForAllForResources(
+        address owner,
+        address operator,
+        bool approved
+    ) internal virtual {
+        require(owner != operator, "MultiResource: approve to caller");
+        _operatorApprovalsForResources[owner][operator] = approved;
+        emit ApprovalForAllForResources(owner, operator, approved);
     }
 
 
@@ -352,7 +429,9 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
 
             catch (bytes memory reason) {
                 if (reason.length == 0) {
-                    revert("MultiResource: transfer to non MultiResource Receiver implementer");
+                    revert(
+                        "MultiResource: transfer to non MultiResource Receiver implementer"
+                    );
                 } else {
                     assembly {
                         revert(add(32, reason), mload(reason))
@@ -392,8 +471,8 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
             "MultiResource: index out of bounds"
         );
         require(
-            _msgSender() == ownerOf(tokenId),
-            "MultiResource: not owner"
+            _isApprovedForResourcesOrOwner(_msgSender(), tokenId),
+            "MultiResource: not owner or approved"
         );
         uint64 resourceId = _pendingResources[tokenId][index];
         _pendingResources[tokenId].removeItemByIndex(index);
@@ -421,8 +500,8 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
             "MultiResource: Pending resource index out of range"
         );
         require(
-            _msgSender() == ownerOf(tokenId),
-            "MultiResource: not owner"
+            _isApprovedForResourcesOrOwner(_msgSender(), tokenId),
+            "MultiResource: not owner or approved"
         );
 
         uint64 resourceId = _pendingResources[tokenId][index];
@@ -435,8 +514,8 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
 
     function rejectAllResources(uint256 tokenId) external virtual {
         require(
-            _msgSender() == ownerOf(tokenId),
-            "MultiResource: not owner"
+            _isApprovedForResourcesOrOwner(_msgSender(), tokenId),
+            "MultiResource: not owner or approved"
         );
         uint256 len = _pendingResources[tokenId].length;
         for (uint i; i<len;) {
@@ -458,8 +537,8 @@ contract MultiResourceToken is Context, IERC721, IMultiResource {
             "MultiResource: Bad priority list length"
         );
         require(
-            _msgSender() == ownerOf(tokenId),
-            "MultiResource: not owner"
+            _isApprovedForResourcesOrOwner(_msgSender(), tokenId),
+            "MultiResource: not owner or approved"
         );
         _activeResourcePriorities[tokenId] = priorities;
 
